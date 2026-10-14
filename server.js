@@ -94,6 +94,23 @@ function allowRequest(request, response, limit) {
 }
 
 async function readJson(request) {
+  if (request.body !== undefined) {
+    if (request.body && typeof request.body === 'object' && !Buffer.isBuffer(request.body)) return request.body;
+    const body = Buffer.isBuffer(request.body) ? request.body.toString('utf8') : String(request.body);
+    if (Buffer.byteLength(body) > MAX_BODY_BYTES) {
+      const error = new Error('Request body is too large.');
+      error.status = 413;
+      throw error;
+    }
+    try {
+      return JSON.parse(body);
+    } catch {
+      const error = new Error('Request body must be valid JSON.');
+      error.status = 400;
+      throw error;
+    }
+  }
+
   let body = '';
   for await (const chunk of request) {
     body += chunk;
@@ -288,6 +305,58 @@ async function sendInquiry(request, response) {
   }
 }
 
+async function handleContact(request, response) {
+  if (request.method !== 'POST') {
+    sendJson(response, 405, { error: 'Method not allowed.' });
+    return;
+  }
+  try {
+    await sendInquiry(request, response);
+  } catch (error) {
+    const status = Number(error.status);
+    sendJson(response, Number.isInteger(status) && status >= 400 && status < 600 ? status : 500, {
+      error: error.status ? error.message : 'The server could not send your enquiry. Please try again later.',
+    });
+  }
+}
+
+async function handleForecast(request, response) {
+  if (request.method !== 'GET') {
+    sendJson(response, 405, { error: 'Method not allowed.' });
+    return;
+  }
+  if (!allowRequest(request, response, 45)) return;
+  try {
+    const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+    const forecast = await getForecast(url.searchParams.get('region'));
+    sendJson(response, 200, forecast);
+  } catch (error) {
+    sendJson(response, error.status || 502, { error: error.message || 'Could not load the weather forecast.' });
+  }
+}
+
+async function handleAdvice(request, response) {
+  if (request.method !== 'POST') {
+    sendJson(response, 405, { error: 'Method not allowed.' });
+    return;
+  }
+  try {
+    await getAdvice(request, response);
+  } catch (error) {
+    const details = String(error.message || 'No error details').replace(process.env.GEMINI_API_KEY || '\u0000', '[redacted]').slice(0, 300);
+    console.error(`Gemini advice request failed (${error.name || 'Error'}, ${error.status || 'no status'}): ${details}`);
+    const status = Number(error.status);
+    const rateLimited = status === 429;
+    const unavailable = status === 503 || /timeout|connection/i.test(error.name || '');
+    const message = rateLimited
+      ? 'Gemini has reached an API rate limit or quota. Check the key’s usage limits and try again later.'
+      : unavailable
+        ? 'Gemini is temporarily unavailable. Please try again shortly.'
+        : error.message || 'Could not generate climate advice.';
+    sendJson(response, Number.isInteger(status) && status >= 400 && status < 600 ? status : 502, { error: message });
+  }
+}
+
 function serveStatic(url, response) {
   let requested;
   try {
@@ -313,43 +382,16 @@ function serveStatic(url, response) {
 
 async function handleRequest(request, response) {
   const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
-  if (request.method === 'POST' && url.pathname === '/api/contact') {
-    try {
-      await sendInquiry(request, response);
-    } catch (error) {
-      const status = Number(error.status);
-      sendJson(response, Number.isInteger(status) && status >= 400 && status < 600 ? status : 500, {
-        error: error.status ? error.message : 'The server could not send your enquiry. Please try again later.',
-      });
-    }
+  if (url.pathname === '/api/contact') {
+    await handleContact(request, response);
     return;
   }
-  if (request.method === 'GET' && url.pathname === '/api/forecast') {
-    if (!allowRequest(request, response, 45)) return;
-    try {
-      const forecast = await getForecast(url.searchParams.get('region'));
-      sendJson(response, 200, forecast);
-    } catch (error) {
-      sendJson(response, error.status || 502, { error: error.message || 'Could not load the weather forecast.' });
-    }
+  if (url.pathname === '/api/forecast') {
+    await handleForecast(request, response);
     return;
   }
-  if (request.method === 'POST' && url.pathname === '/api/advice') {
-    try {
-      await getAdvice(request, response);
-    } catch (error) {
-      const details = String(error.message || 'No error details').replace(process.env.GEMINI_API_KEY || '\u0000', '[redacted]').slice(0, 300);
-      console.error(`Gemini advice request failed (${error.name || 'Error'}, ${error.status || 'no status'}): ${details}`);
-      const status = Number(error.status);
-      const rateLimited = status === 429;
-      const unavailable = status === 503 || /timeout|connection/i.test(error.name || '');
-      const message = rateLimited
-        ? 'Gemini has reached an API rate limit or quota. Check the key’s usage limits and try again later.'
-        : unavailable
-          ? 'Gemini is temporarily unavailable. Please try again shortly.'
-          : error.message || 'Could not generate climate advice.';
-      sendJson(response, Number.isInteger(status) && status >= 400 && status < 600 ? status : 502, { error: message });
-    }
+  if (url.pathname === '/api/advice') {
+    await handleAdvice(request, response);
     return;
   }
   if (request.method === 'GET' && !url.pathname.startsWith('/api/')) {
@@ -359,13 +401,17 @@ async function handleRequest(request, response) {
   sendJson(response, 404, { error: 'Route not found.' });
 }
 
-loadLocalEnvironment();
-http.createServer((request, response) => {
-  handleRequest(request, response).catch((error) => {
-    if (!response.headersSent) sendJson(response, 500, { error: 'The server could not complete this request.' });
-    else response.destroy(error);
+module.exports = { handleAdvice, handleContact, handleForecast };
+
+if (require.main === module) {
+  loadLocalEnvironment();
+  http.createServer((request, response) => {
+    handleRequest(request, response).catch((error) => {
+      if (!response.headersSent) sendJson(response, 500, { error: 'The server could not complete this request.' });
+      else response.destroy(error);
+    });
+  }).listen(PORT, () => {
+    console.log(`Ecosynic Africa is running at http://localhost:${PORT}`);
+    console.log(process.env.GEMINI_API_KEY ? 'Gemini climate advice is enabled.' : 'Forecasts are available; set GEMINI_API_KEY in .env to enable AI chat.');
   });
-}).listen(PORT, () => {
-  console.log(`Ecosynic Africa is running at http://localhost:${PORT}`);
-  console.log(process.env.GEMINI_API_KEY ? 'Gemini climate advice is enabled.' : 'Forecasts are available; set GEMINI_API_KEY in .env to enable AI chat.');
-});
+}
