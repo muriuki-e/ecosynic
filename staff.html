@@ -13,7 +13,6 @@
   <script src="script.js" defer></script>
 </head>
 <body id="top" class="staff-page">
-  <div class="announcement"><span>MERU COUNTY, KENYA</span><span class="announcement-dot"></span><span>BUILDING A CLIMATE-RESILIENT FUTURE</span><a href="index.html#contact">Start a conversation <span aria-hidden="true">↗</span></a></div>
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button>
@@ -36,24 +35,10 @@
     <section class="staff-directory section-wrap" aria-labelledby="staff-heading">
       <div class="staff-directory-heading">
         <div><p class="eyebrow"><span class="eyebrow-line"></span> STAFF DIRECTORY</p><h2 id="staff-heading">Our team</h2></div>
-        <span>2 profiles</span>
+        <span id="staff-count">Loading profiles...</span>
       </div>
-      <div class="staff-list">
-        <article class="staff-member">
-          <figure class="staff-photo">
-            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Temporary stock portrait placeholder, not Job Kimathi" width="900" height="675" loading="lazy">
-            <figcaption>TEMPORARY PHOTO</figcaption>
-          </figure>
-          <div class="staff-member-info"><h3>Job Kimathi</h3><p>Director</p><a class="staff-contact" href="tel:+25412345678" aria-label="Call Job Kimathi at +25412345678">CALL&nbsp; +25412345678</a></div>
-        </article>
-        <article class="staff-member">
-          <figure class="staff-photo">
-            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Temporary stock portrait placeholder, not Alex Ndereba" width="900" height="675" loading="lazy">
-            <figcaption>TEMPORARY PHOTO</figcaption>
-          </figure>
-          <div class="staff-member-info"><h3>Alex Ndereba</h3><p>IT technician</p><a class="staff-contact" href="tel:+25412345678" aria-label="Call Alex Ndereba at +25412345678">CALL&nbsp; +25412345678</a></div>
-        </article>
-      </div>
+      <p class="staff-status" id="staff-status" role="status">Loading team profiles...</p>
+      <div class="staff-list" id="staff-list"></div>
     </section>
   </main>
   <footer class="site-footer">
@@ -67,5 +52,6 @@
     </div>
     <div class="footer-bottom"><span>© <span id="year"></span> Ecosynic Africa</span><span>INNOVATION ROOTED IN PLACE. BUILT FOR WHAT'S NEXT.</span><a href="index.html#work">ALL WORK PATHWAYS</a></div>
   </footer>
+  <script src="team.js" defer></script>
 </body>
 </html>

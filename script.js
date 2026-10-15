@@ -23,8 +23,7 @@ if (siteHeader) {
   } catch {
     savedTheme = null;
   }
-  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const initialTheme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : systemTheme;
+  const initialTheme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : 'light';
 
   const applyTheme = (theme, savePreference = false) => {
     document.documentElement.dataset.theme = theme;

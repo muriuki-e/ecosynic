@@ -3,6 +3,7 @@ const path = require('node:path');
 const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
+const { handleAdmin, handleTeam, handleTeamPhoto } = require('./lib/team-api');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 4173);
@@ -28,14 +29,33 @@ const regions = {
 const publicFiles = new Set([
   'index.html',
   'staff.html',
+  'admin.html',
   'climate-resilience.html',
   'ecosystem-restoration.html',
   'smart-agriculture.html',
   'climate-technology.html',
   'green-livelihoods.html',
   'community-leadership.html',
+  'Ecosynic Africa Shield Logo.png',
+  'images/WhatsApp Image 2026-10-14 at 8.37.51 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.52 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.53 PM (1).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.53 PM (2).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.53 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.54 PM (1).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.54 PM (2).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.54 PM (3).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.54 PM (4).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.54 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.55 PM (1).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.55 PM (2).jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.37.55 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 8.40.07 PM.jpeg',
+  'images/WhatsApp Image 2026-10-14 at 9.54.29 PM.jpeg',
   'styles.css',
   'script.js',
+  'admin.js',
+  'team.js',
 ]);
 
 function loadLocalEnvironment() {
@@ -365,13 +385,15 @@ function serveStatic(url, response) {
     sendJson(response, 400, { error: 'Invalid URL path.' });
     return;
   }
+  if (requested === 'home') requested = 'index.html';
+  else if (!path.extname(requested)) requested += '.html';
   if (!publicFiles.has(requested)) {
     sendJson(response, 404, { error: 'Page not found.' });
     return;
   }
 
   const filePath = path.join(ROOT, requested);
-  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8';
+  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : requested.endsWith('.png') ? 'image/png' : requested.endsWith('.jpeg') ? 'image/jpeg' : 'text/javascript; charset=utf-8';
   response.writeHead(200, {
     'Content-Type': contentType,
     'X-Content-Type-Options': 'nosniff',
@@ -382,6 +404,18 @@ function serveStatic(url, response) {
 
 async function handleRequest(request, response) {
   const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+  if (url.pathname === '/api/admin') {
+    await handleAdmin(request, response);
+    return;
+  }
+  if (url.pathname === '/api/team') {
+    await handleTeam(request, response);
+    return;
+  }
+  if (url.pathname === '/api/team-photo') {
+    await handleTeamPhoto(request, response);
+    return;
+  }
   if (url.pathname === '/api/contact') {
     await handleContact(request, response);
     return;
