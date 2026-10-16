@@ -56,6 +56,9 @@ const publicFiles = new Set([
   'script.js',
   'admin.js',
   'team.js',
+  ...fs.readdirSync(path.join(ROOT, 'images'))
+    .filter((file) => /\.(?:jpe?g|png|webp)$/i.test(file))
+    .map((file) => `images/${file}`),
 ]);
 
 function loadLocalEnvironment() {

@@ -74,6 +74,38 @@ document.querySelectorAll('.filter-button').forEach((button) => {
   });
 });
 
+const heroSlides = Array.from(document.querySelectorAll('.hero-slide'));
+const heroSliderIndex = document.querySelector('#hero-slider-index');
+if (heroSlides.length) {
+  let activeIndex = 0;
+  const setActiveSlide = (index) => {
+    activeIndex = index;
+    heroSlides.forEach((slide, slideIndex) => {
+      slide.classList.toggle('is-active', slideIndex === index);
+    });
+    if (heroSliderIndex) {
+      heroSliderIndex.textContent = `${String(index + 1).padStart(2, '0')} / ${String(heroSlides.length).padStart(2, '0')}`;
+    }
+  };
+  setInterval(() => {
+    setActiveSlide((activeIndex + 1) % heroSlides.length);
+  }, 3000);
+}
+
+const galleryToggle = document.querySelector('.gallery-toggle');
+const extraGalleryFigures = document.querySelectorAll('[data-gallery-extra]');
+
+if (galleryToggle && extraGalleryFigures.length) {
+  galleryToggle.addEventListener('click', () => {
+    const expanded = galleryToggle.getAttribute('aria-expanded') === 'true';
+    galleryToggle.setAttribute('aria-expanded', String(!expanded));
+    galleryToggle.textContent = expanded ? 'See more' : 'See less';
+    extraGalleryFigures.forEach((figure) => {
+      figure.hidden = expanded;
+    });
+  });
+}
+
 const inquiryForm = document.querySelector('#inquiry-form');
 const feedbackDialog = document.querySelector('#contact-feedback');
 const feedbackTitle = document.querySelector('#contact-feedback-title');
