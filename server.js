@@ -42,6 +42,8 @@ const publicFiles = new Set([
   'newsletter.html',
   'newsletter-unsubscribe.html',
   'get-involved.html',
+  'robots.txt',
+  'sitemap.xml',
   'favicon.png',
   'Ecosynic Africa Shield Logo.png',
   'images/WhatsApp Image 2026-10-14 at 8.37.51 PM.jpeg',
@@ -409,7 +411,7 @@ function serveStatic(url, response) {
   }
 
   const filePath = path.join(ROOT, requested);
-  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : requested.endsWith('.png') ? 'image/png' : requested.endsWith('.jpeg') ? 'image/jpeg' : 'text/javascript; charset=utf-8';
+  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : requested.endsWith('.xml') ? 'application/xml; charset=utf-8' : requested.endsWith('.txt') ? 'text/plain; charset=utf-8' : requested.endsWith('.png') ? 'image/png' : requested.endsWith('.jpeg') ? 'image/jpeg' : 'text/javascript; charset=utf-8';
   response.writeHead(200, {
     'Content-Type': contentType,
     'X-Content-Type-Options': 'nosniff',
