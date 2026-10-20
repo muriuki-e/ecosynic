@@ -5,9 +5,18 @@ const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
 const profileForm = document.querySelector('#profile-form');
 const profileFormTitle = document.querySelector('#profile-form-title');
+const profileDialog = document.querySelector('#profile-dialog');
+const confirmDialog = document.querySelector('#confirm-dialog');
+const confirmTitle = document.querySelector('#confirm-title');
+const confirmMessage = document.querySelector('#confirm-message');
+const confirmActionButton = document.querySelector('#confirm-action');
+const confirmCancelButton = document.querySelector('#confirm-cancel');
+const closeProfileButton = document.querySelector('#close-profile');
+const photoDropzone = document.querySelector('#photo-dropzone');
 const profileError = document.querySelector('#profile-error');
 const photoError = document.querySelector('#photo-error');
 const dashboardError = document.querySelector('#dashboard-error');
+const adminToast = document.querySelector('#admin-toast');
 const photoInput = document.querySelector('#profile-photo');
 const photoPreview = document.querySelector('#photo-preview');
 const adminList = document.querySelector('#admin-list');
@@ -23,6 +32,9 @@ let profiles = [];
 let editingId = null;
 let photo = null;
 let previewUrl = '';
+let photoUploadPending = false;
+let pendingAction = null;
+let toastTimer = null;
 
 async function api(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options });
@@ -87,20 +99,21 @@ logoutButton.addEventListener('click', async () => {
 document.querySelector('#new-profile').addEventListener('click', () => openForm());
 document.querySelector('#cancel-profile').addEventListener('click', closeForm);
 
-photoInput.addEventListener('change', async () => {
+async function uploadPhoto(file) {
   photoError.textContent = '';
   photo = null;
-  const file = photoInput.files?.[0];
   if (!file) return;
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 4_000_000) {
     photoError.textContent = 'Choose a JPEG, PNG or WebP image under 4 MB.';
     photoInput.value = '';
+    photoPreview.hidden = true;
     return;
   }
   if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
   previewUrl = URL.createObjectURL(file);
   photoPreview.src = previewUrl;
   photoPreview.hidden = false;
+  photoUploadPending = true;
   saveButton.disabled = true;
   saveButton.textContent = 'Uploading photo...';
   try {
@@ -115,13 +128,35 @@ photoInput.addEventListener('change', async () => {
     photo = null;
     photoPreview.hidden = true;
   } finally {
+    photoUploadPending = false;
     saveButton.disabled = false;
     saveButton.textContent = 'Save profile';
   }
+}
+
+photoInput.addEventListener('change', () => uploadPhoto(photoInput.files?.[0]));
+
+photoDropzone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  photoDropzone.classList.add('is-dragging');
+});
+
+photoDropzone.addEventListener('dragleave', (event) => {
+  if (event.target === photoDropzone) photoDropzone.classList.remove('is-dragging');
+});
+
+photoDropzone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  photoDropzone.classList.remove('is-dragging');
+  uploadPhoto(event.dataTransfer?.files?.[0]);
 });
 
 profileForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (photoUploadPending) {
+    profileError.textContent = 'Wait for the photo upload to finish before saving.';
+    return;
+  }
   profileError.textContent = '';
   const existing = profiles.find((profile) => profile.id === editingId);
   const payload = {
@@ -132,25 +167,38 @@ profileForm.addEventListener('submit', async (event) => {
     photoUrl: photo?.url || existing?.photoUrl || '',
     photoPath: photo?.path || existing?.photoPath || '',
   };
+  const isEditing = Boolean(editingId);
+  requestConfirmation({
+    title: isEditing ? 'Save these changes?' : 'Add this team member?',
+    message: isEditing
+      ? `Update the team profile for ${payload.name}?`
+      : `Add ${payload.name} to the team directory?`,
+    confirmLabel: isEditing ? 'Save changes' : 'Add member',
+    run: () => saveProfile(payload, isEditing),
+  });
+});
+
+async function saveProfile(payload, isEditing) {
   saveButton.disabled = true;
-  saveButton.textContent = 'Saving...';
+  saveButton.textContent = isEditing ? 'Saving...' : 'Adding...';
   try {
     const route = editingId ? `/api/team?id=${encodeURIComponent(editingId)}` : '/api/team';
     const result = await api(route, {
-      method: editingId ? 'PUT' : 'POST',
+      method: isEditing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     profiles = result.profiles;
     renderProfiles();
     closeForm();
+    showToast(isEditing ? 'Team member updated.' : 'Team member added.');
   } catch (error) {
     profileError.textContent = error.message;
   } finally {
     saveButton.disabled = false;
     saveButton.textContent = 'Save profile';
   }
-});
+}
 
 async function loadProfiles() {
   dashboardError.textContent = '';
@@ -217,33 +265,80 @@ function openForm(profile = null) {
   profileError.textContent = '';
   photoError.textContent = '';
   photoInput.value = '';
+  photoDropzone.classList.remove('is-dragging');
   photoPreview.hidden = !profile?.photoUrl;
   photoPreview.src = profile?.photoUrl || '';
-  profileForm.hidden = false;
+  profileDialog.showModal();
   profileName.focus();
 }
 
 function closeForm() {
-  profileForm.hidden = true;
+  if (profileDialog.open) profileDialog.close();
+  resetProfileForm();
+}
+
+function resetProfileForm() {
   profileForm.reset();
   editingId = null;
   photo = null;
+  photoUploadPending = false;
+  photoDropzone.classList.remove('is-dragging');
   photoPreview.hidden = true;
   photoPreview.removeAttribute('src');
   if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
   previewUrl = '';
 }
 
+function requestConfirmation({ title, message, confirmLabel, danger = false, run }) {
+  pendingAction = run;
+  confirmTitle.textContent = title;
+  confirmMessage.textContent = message;
+  confirmActionButton.textContent = confirmLabel;
+  confirmActionButton.classList.toggle('is-danger', danger);
+  confirmDialog.showModal();
+  confirmCancelButton.focus();
+}
+
+function showToast(message) {
+  window.clearTimeout(toastTimer);
+  adminToast.textContent = message;
+  adminToast.classList.add('is-visible');
+  toastTimer = window.setTimeout(() => adminToast.classList.remove('is-visible'), 3600);
+}
+
+confirmActionButton.addEventListener('click', async () => {
+  const action = pendingAction;
+  pendingAction = null;
+  confirmDialog.close();
+  if (action) await action();
+});
+
+confirmCancelButton.addEventListener('click', () => confirmDialog.close());
+confirmDialog.addEventListener('close', () => {
+  pendingAction = null;
+  confirmActionButton.classList.remove('is-danger');
+});
+closeProfileButton.addEventListener('click', closeForm);
+profileDialog.addEventListener('close', resetProfileForm);
+
 async function deleteProfile(profile) {
-  if (!window.confirm(`Delete ${profile.name} from the team page?`)) return;
-  dashboardError.textContent = '';
-  try {
-    const result = await api(`/api/team?id=${encodeURIComponent(profile.id)}`, { method: 'DELETE' });
-    profiles = result.profiles;
-    renderProfiles();
-  } catch (error) {
-    dashboardError.textContent = error.message;
-  }
+  requestConfirmation({
+    title: 'Remove this team member?',
+    message: `Delete ${profile.name} from the team directory? This action cannot be undone.`,
+    confirmLabel: 'Delete member',
+    danger: true,
+    run: async () => {
+      dashboardError.textContent = '';
+      try {
+        const result = await api(`/api/team?id=${encodeURIComponent(profile.id)}`, { method: 'DELETE' });
+        profiles = result.profiles;
+        renderProfiles();
+        showToast('Team member deleted.');
+      } catch (error) {
+        dashboardError.textContent = error.message;
+      }
+    },
+  });
 }
 
 checkSession();

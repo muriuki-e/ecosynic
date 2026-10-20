@@ -46,42 +46,68 @@
         <button class="admin-button" id="new-profile" type="button">Add team member</button>
       </div>
 
-      <form class="admin-profile-form" id="profile-form" hidden>
-        <h2 id="profile-form-title">Add team member</h2>
-        <div class="admin-profile-form-grid">
-          <div>
-            <label class="admin-photo-label" for="profile-photo">Profile photo</label>
-            <input class="admin-photo-input" id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp">
-            <img class="admin-photo-preview" id="photo-preview" alt="Selected team photo preview" hidden>
-            <p class="admin-error" id="photo-error" role="alert"></p>
-          </div>
-          <div class="admin-fields">
-            <label for="profile-name">Full name
-              <input id="profile-name" name="name" maxlength="100" autocomplete="name" required>
-            </label>
-            <label for="profile-role">Role or title
-              <input id="profile-role" name="role" maxlength="100" required>
-            </label>
-            <label for="profile-phone">Phone
-              <input id="profile-phone" name="phone" type="tel" maxlength="40" autocomplete="tel">
-            </label>
-            <label for="profile-email">Email
-              <input id="profile-email" name="email" type="email" maxlength="254" autocomplete="email">
-            </label>
-            <p class="admin-lede">Add at least one contact method.</p>
-          </div>
-        </div>
-        <p class="admin-error" id="profile-error" role="alert"></p>
-        <div class="admin-form-actions">
-          <button class="admin-button" id="save-profile" type="submit">Save profile</button>
-          <button class="admin-button-secondary" id="cancel-profile" type="button">Cancel</button>
-        </div>
-      </form>
-
       <p class="admin-notice" id="storage-notice" hidden></p>
       <p class="admin-error" id="dashboard-error" role="alert"></p>
       <div class="admin-list" id="admin-list" aria-live="polite"></div>
     </section>
   </main>
+
+  <dialog class="admin-dialog admin-profile-dialog" id="profile-dialog" aria-labelledby="profile-form-title">
+    <form class="admin-profile-form" id="profile-form">
+      <div class="admin-dialog-heading">
+        <div>
+          <p class="admin-dialog-kicker">TEAM DIRECTORY</p>
+          <h2 id="profile-form-title">Add team member</h2>
+          <p class="admin-dialog-lede">Add their details and a profile photo.</p>
+        </div>
+        <button class="admin-dialog-close" id="close-profile" type="button" aria-label="Close form">×</button>
+      </div>
+      <div class="admin-profile-form-grid">
+        <div class="admin-photo-field">
+          <label class="admin-photo-label" for="profile-photo">Profile photo</label>
+          <div class="admin-photo-dropzone" id="photo-dropzone">
+            <input class="admin-photo-input" id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photo-guidance">
+            <span class="admin-upload-icon" aria-hidden="true">↑</span>
+            <span class="admin-upload-title">Choose a photo or drag it here</span>
+            <span class="admin-upload-guidance" id="photo-guidance">JPEG, PNG or WebP · up to 4 MB</span>
+          </div>
+          <img class="admin-photo-preview" id="photo-preview" alt="Selected team photo preview" hidden>
+          <p class="admin-error" id="photo-error" role="alert"></p>
+        </div>
+        <div class="admin-fields">
+          <label for="profile-name">Full name
+            <input id="profile-name" name="name" maxlength="100" autocomplete="name" required>
+          </label>
+          <label for="profile-role">Role or title
+            <input id="profile-role" name="role" maxlength="100" required>
+          </label>
+          <label for="profile-phone">Phone
+            <input id="profile-phone" name="phone" type="tel" maxlength="40" autocomplete="tel">
+          </label>
+          <label for="profile-email">Email
+            <input id="profile-email" name="email" type="email" maxlength="254" autocomplete="email">
+          </label>
+          <p class="admin-lede">Provide at least one contact method: phone or email.</p>
+        </div>
+      </div>
+      <p class="admin-error" id="profile-error" role="alert"></p>
+      <div class="admin-form-actions">
+        <button class="admin-button" id="save-profile" type="submit">Save profile</button>
+        <button class="admin-button-secondary" id="cancel-profile" type="button">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="admin-dialog admin-confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="admin-confirm-mark" aria-hidden="true">?</div>
+    <p class="admin-dialog-kicker">PLEASE CONFIRM</p>
+    <h2 id="confirm-title">Confirm this action</h2>
+    <p class="admin-dialog-lede" id="confirm-message"></p>
+    <div class="admin-form-actions">
+      <button class="admin-button-secondary" id="confirm-cancel" type="button">Cancel</button>
+      <button class="admin-button" id="confirm-action" type="button">Confirm</button>
+    </div>
+  </dialog>
+  <p class="admin-toast" id="admin-toast" role="status" aria-live="polite"></p>
 </body>
 </html>
