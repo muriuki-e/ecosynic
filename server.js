@@ -30,6 +30,7 @@ const regions = {
 const publicFiles = new Set([
   'index.html',
   'staff.html',
+  'gallery.html',
   'admin.html',
   'climate-resilience.html',
   'ecosystem-restoration.html',
