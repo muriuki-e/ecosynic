@@ -42,6 +42,7 @@ const publicFiles = new Set([
   'newsletter.html',
   'newsletter-unsubscribe.html',
   'get-involved.html',
+  'favicon.png',
   'Ecosynic Africa Shield Logo.png',
   'images/WhatsApp Image 2026-10-14 at 8.37.51 PM.jpeg',
   'images/WhatsApp Image 2026-10-14 at 8.37.52 PM.jpeg',
