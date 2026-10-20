@@ -8,6 +8,27 @@ if (primaryNav && !primaryNav.querySelector('a[href="staff.html"]')) {
   primaryNav.insertBefore(staffLink, primaryNav.querySelector('.nav-contact'));
 }
 
+const footerMain = document.querySelector('.footer-main');
+if (footerMain && !footerMain.querySelector('.footer-resources')) {
+  const resources = document.createElement('div');
+  resources.className = 'footer-column footer-resources';
+  const heading = document.createElement('span');
+  heading.textContent = 'MORE';
+  resources.append(heading);
+  [
+    ['FAQs', 'faq.html'],
+    ['Geographic scope', 'geographic-scope.html'],
+    ['Newsletter', 'newsletter.html'],
+    ['Get involved', 'get-involved.html'],
+  ].forEach(([label, href]) => {
+    const link = document.createElement('a');
+    link.href = href;
+    link.textContent = label;
+    resources.append(link);
+  });
+  footerMain.append(resources);
+}
+
 const siteHeader = document.querySelector('.site-header');
 const themeToggle = document.createElement('button');
 themeToggle.className = 'theme-toggle';
@@ -113,6 +134,51 @@ const feedbackMessage = document.querySelector('#contact-feedback-message');
 const feedbackClose = document.querySelector('#contact-feedback-close');
 
 feedbackClose?.addEventListener('click', () => feedbackDialog.close());
+
+const newsletterForm = document.querySelector('#newsletter-form');
+const newsletterFeedback = document.querySelector('#newsletter-feedback');
+const newsletterFeedbackTitle = document.querySelector('#newsletter-feedback-title');
+const newsletterFeedbackMessage = document.querySelector('#newsletter-feedback-message');
+const newsletterFeedbackClose = document.querySelector('#newsletter-feedback-close');
+
+newsletterFeedbackClose?.addEventListener('click', () => newsletterFeedback.close());
+
+newsletterForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submitButton = newsletterForm.querySelector('button[type="submit"]');
+  const formData = new FormData(newsletterForm);
+  const status = document.querySelector('#newsletter-note');
+  submitButton.disabled = true;
+  status.textContent = 'Sending your subscription request...';
+
+  try {
+    const response = await fetch('/api/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: String(formData.get('name') || '').trim(),
+        email: String(formData.get('email') || '').trim(),
+        consent: formData.get('consent') === 'on',
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not send your subscription request.');
+    newsletterForm.reset();
+    status.textContent = '';
+    newsletterFeedback.dataset.state = 'success';
+    newsletterFeedbackTitle.textContent = 'Subscription request sent';
+    newsletterFeedbackMessage.textContent = result.message;
+  } catch (error) {
+    status.textContent = '';
+    newsletterFeedback.dataset.state = 'error';
+    newsletterFeedbackTitle.textContent = 'Subscription request not sent';
+    newsletterFeedbackMessage.textContent = error.message || 'Could not send your subscription request. Please try again later.';
+  } finally {
+    submitButton.disabled = false;
+    newsletterFeedback.showModal();
+    newsletterFeedbackClose.focus();
+  }
+});
 
 inquiryForm?.addEventListener('submit', async (event) => {
   event.preventDefault();

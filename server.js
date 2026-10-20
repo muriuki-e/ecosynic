@@ -4,6 +4,7 @@ const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
 const { handleAdmin, handleTeam, handleTeamPhoto } = require('./lib/team-api');
+const { handleNewsletter, unsubscribe } = require('./lib/newsletter-api');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 4173);
@@ -36,6 +37,11 @@ const publicFiles = new Set([
   'climate-technology.html',
   'green-livelihoods.html',
   'community-leadership.html',
+  'faq.html',
+  'geographic-scope.html',
+  'newsletter.html',
+  'newsletter-unsubscribe.html',
+  'get-involved.html',
   'Ecosynic Africa Shield Logo.png',
   'images/WhatsApp Image 2026-10-14 at 8.37.51 PM.jpeg',
   'images/WhatsApp Image 2026-10-14 at 8.37.52 PM.jpeg',
@@ -56,6 +62,7 @@ const publicFiles = new Set([
   'script.js',
   'admin.js',
   'team.js',
+  'newsletter-unsubscribe.js',
   ...fs.readdirSync(path.join(ROOT, 'images'))
     .filter((file) => /\.(?:jpe?g|png|webp)$/i.test(file))
     .map((file) => `images/${file}`),
@@ -273,10 +280,8 @@ async function getAdvice(request, response) {
 async function sendInquiry(request, response) {
   if (!allowRequest(request, response, 4)) return;
 
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPassword = process.env.SMTP_PASSWORD;
-  if (!smtpHost || !smtpUser || !smtpPassword) {
+  const transporter = createSmtpTransport();
+  if (!transporter) {
     sendJson(response, 503, { error: 'Email is not configured yet. Please contact us by email or phone.' });
     return;
   }
@@ -301,21 +306,9 @@ async function sendInquiry(request, response) {
     return;
   }
 
-  const port = Number(process.env.SMTP_PORT || 587);
-  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port,
-    secure,
-    auth: { user: smtpUser, pass: smtpPassword },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 15_000,
-  });
-
   try {
     await transporter.sendMail({
-      from: { name: `${name} via Ecosynic`, address: process.env.MAIL_FROM || smtpUser },
+      from: { name: `${name} via Ecosynic`, address: process.env.MAIL_FROM || process.env.SMTP_USER },
       to: process.env.MAIL_TO || 'info@ecosynic.or.ke',
       replyTo: email,
       subject: `${inquiry} | Website enquiry`,
@@ -326,6 +319,25 @@ async function sendInquiry(request, response) {
     console.error(`SMTP contact delivery failed (${error.code || error.name || 'Error'}).`);
     sendJson(response, 502, { error: 'We could not send your enquiry right now. Please try again later or email info@ecosynic.or.ke.' });
   }
+}
+
+function createSmtpTransport() {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPassword = process.env.SMTP_PASSWORD;
+  if (!smtpHost || !smtpUser || !smtpPassword) return null;
+
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+  return nodemailer.createTransport({
+    host: smtpHost,
+    port,
+    secure,
+    auth: { user: smtpUser, pass: smtpPassword },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
+  });
 }
 
 async function handleContact(request, response) {
@@ -423,6 +435,14 @@ async function handleRequest(request, response) {
     await handleContact(request, response);
     return;
   }
+  if (url.pathname === '/api/newsletter') {
+    await handleNewsletter(request, response);
+    return;
+  }
+  if (url.pathname === '/api/newsletter-unsubscribe') {
+    await unsubscribe(request, response);
+    return;
+  }
   if (url.pathname === '/api/forecast') {
     await handleForecast(request, response);
     return;
@@ -438,7 +458,7 @@ async function handleRequest(request, response) {
   sendJson(response, 404, { error: 'Route not found.' });
 }
 
-module.exports = { handleAdvice, handleContact, handleForecast };
+module.exports = { handleAdvice, handleContact, handleForecast, handleNewsletter };
 
 if (require.main === module) {
   loadLocalEnvironment();

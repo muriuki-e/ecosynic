@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ed">
+  <meta name="description" content="Request Ecosynic Africa climate, nature and community updates by email.">
+  <title>Newsletter | Ecosynic Africa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body id="top" class="info-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button>
+    <nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+      <a href="index.html#about">About</a>
+      <a href="index.html#work">Our work</a>
+      <a href="index.html#impact">Impact</a>
+      <a href="index.html#knowledge">Knowledge</a>
+      <a href="index.html#partners">Partners</a>
+      <a href="staff.html">Our team</a>
+      <a href="get-involved.html">Get involved</a>
+      <a href="index.html#contact" class="nav-contact">Get in touch <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main>
+    <section class="info-hero" aria-labelledby="info-title">
+      <p class="eyebrow light"><span class="eyebrow-line"></span> NOTES FROM THE FIELD</p>
+      <h1 id="info-title">Ideas, insight<br><em>& updates.</em></h1>
+      <p class="staff-hero-copy">Request Ecosynic updates by email and find out how to ask about previous newsletter issues.</p>
+    </section>
+    <section class="info-content section-wrap newsletter-content">
+      <div class="newsletter-panel">
+        <div class="newsletter-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> THE ECOSYNIC NEWSLETTER</p>
+          <h2>Stay close to<br><em>what’s changing.</em></h2>
+          <p class="info-lede">Occasional updates on climate innovation, field work and community-led solutions. Subscribe to receive updates by email; you can unsubscribe at any time.</p>
+          <form class="newsletter-form" id="newsletter-form">
+            <label for="newsletter-name">Your name
+              <input id="newsletter-name" name="name" autocomplete="name" maxlength="100" required>
+            </label>
+            <label for="newsletter-email">Email address
+              <input id="newsletter-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+            </label>
+            <label class="newsletter-consent" for="newsletter-consent">
+              <input id="newsletter-consent" name="consent" type="checkbox" required>
+              <span>I agree to email Ecosynic Africa to request newsletter updates.</span>
+            </label>
+            <button class="button button-dark" type="submit">Subscribe <span aria-hidden="true">↗</span></button>
+            <p class="newsletter-note" id="newsletter-note" role="status" aria-live="polite"></p>
+          </form>
+          <p class="newsletter-privacy">Your email is stored securely so we can send requested updates. Every newsletter includes an unsubscribe link.</p>
+        </div>
+        <aside class="newsletter-archive">
+          <span class="newsletter-archive-mark" aria-hidden="true">✳</span>
+          <p class="eyebrow">NEWSLETTER ARCHIVE</p>
+          <h3>Looking for an earlier issue?</h3>
+          <p>Email the team to ask about available newsletters and publications.</p>
+          <a class="underlined-link" href="mailto:info@ecosynic.or.ke?subject=Newsletter%20archive%20request">Request previous issues <span aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <dialog class="contact-feedback" id="newsletter-feedback" aria-labelledby="newsletter-feedback-title" aria-describedby="newsletter-feedback-message">
+    <span class="contact-feedback-mark" aria-hidden="true"></span>
+    <p class="contact-feedback-kicker">ECOSYNIC AFRICA</p>
+    <h2 id="newsletter-feedback-title">Subscription request sent</h2>
+    <p id="newsletter-feedback-message"></p>
+    <button class="button button-dark" id="newsletter-feedback-close" type="button">Close</button>
+  </dialog>
+  <footer class="site-footer">
+    <div class="footer-top"><a class="brand footer-brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a><p>Climate. Nature. Agriculture.<br>Technology. People.</p><a class="back-top" href="#top">BACK TO TOP <span aria-hidden="true">↑</span></a></div>
+    <div class="footer-main">
+      <div class="footer-summary"><p>Centre for Climate Innovation developing practical, technology-enabled solutions for a resilient Africa.</p><span>MERU COUNTY, KENYA</span></div>
+      <div class="footer-column"><span>EXPLORE</span><a href="index.html#about">About</a><a href="index.html#work">Our work</a><a href="index.html#impact">Impact</a></div>
+      <div class="footer-column"><span>OUR WORK</span><a href="climate-resilience.html">Climate resilience</a><a href="ecosystem-restoration.html">Ecosystem restoration</a><a href="smart-agriculture.html">Smart agriculture</a></div>
+      <div class="footer-column"><span>INNOVATION</span><a href="climate-technology.html">Climate technology</a><a href="green-livelihoods.html">Green livelihoods</a><a href="community-leadership.html">Community leadership</a></div>
+      <div class="footer-column"><span>CONNECT</span><a href="mailto:info@ecosynic.or.ke">Email Ecosynic ↗</a><a href="index.html#contact">Contact ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© <span id="year"></span> Ecosynic Africa</span><span>INNOVATION ROOTED IN PLACE. BUILT FOR WHAT'S NEXT.</span><a href="index.html#work">ALL WORK PATHWAYS</a></div>
+  </footer>
+</body>
+</html>

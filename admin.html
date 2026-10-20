@@ -20,6 +20,10 @@
       <button id="admin-logout" type="button">Sign out</button>
     </div>
   </header>
+  <nav class="admin-section-nav" id="admin-section-nav" aria-label="Admin sections" hidden>
+    <a href="#team-management" data-admin-section="team-management" aria-current="page">Manage team</a>
+    <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
+  </nav>
   <main class="admin-main">
     <section class="admin-login" id="admin-login" aria-labelledby="login-title">
       <h1 id="login-title">Team dashboard</h1>
@@ -38,17 +42,69 @@
 
     <section class="admin-dashboard" id="admin-dashboard" hidden aria-labelledby="dashboard-title">
       <div>
-        <h1 id="dashboard-title">Manage the team</h1>
-        <p class="admin-lede">Profiles appear on the public team page. Photos must be JPEG, PNG or WebP and no larger than 4 MB.</p>
+        <p class="admin-dialog-kicker">ECOSYNIC AFRICA · ADMIN</p>
+        <h1 id="dashboard-title">Your workspace</h1>
+        <p class="admin-lede">Manage your team directory and keep subscribers up to date.</p>
       </div>
-      <div class="admin-toolbar">
-        <div><h2>Team profiles</h2><p class="admin-lede" id="profile-count">0 profiles</p></div>
-        <button class="admin-button" id="new-profile" type="button">Add team member</button>
-      </div>
-
       <p class="admin-notice" id="storage-notice" hidden></p>
-      <p class="admin-error" id="dashboard-error" role="alert"></p>
-      <div class="admin-list" id="admin-list" aria-live="polite"></div>
+      <section class="admin-panel" id="team-management" aria-labelledby="team-management-title">
+        <div class="admin-section-heading">
+          <div>
+            <p class="admin-dialog-kicker">PEOPLE & PROFILES</p>
+            <h2 id="team-management-title">Manage your team</h2>
+            <p class="admin-lede">Profiles appear on the public team page. Photos must be JPEG, PNG or WebP and no larger than 4 MB.</p>
+          </div>
+          <button class="admin-button" id="new-profile" type="button">Add team member <span aria-hidden="true">+</span></button>
+        </div>
+        <div class="admin-toolbar">
+          <div><h3>Team profiles</h3><p class="admin-lede" id="profile-count">0 profiles</p></div>
+        </div>
+        <p class="admin-error" id="dashboard-error" role="alert"></p>
+        <div class="admin-list" id="admin-list" aria-live="polite"></div>
+      </section>
+
+      <section class="admin-panel newsletter-admin" id="newsletter-management" aria-labelledby="newsletter-admin-title" hidden>
+        <div class="newsletter-admin-heading">
+          <div>
+            <p class="admin-dialog-kicker">COMMUNITY UPDATES</p>
+            <h2 id="newsletter-admin-title">Newsletter</h2>
+            <p class="admin-lede">A thoughtful note to the people following Ecosynic’s work.</p>
+          </div>
+          <div class="newsletter-count-card">
+            <strong id="subscriber-count">Loading...</strong>
+            <span>active subscribers</span>
+          </div>
+        </div>
+        <p class="admin-error" id="newsletter-admin-error" role="alert"></p>
+        <div class="newsletter-workspace">
+          <section class="newsletter-audience-card" aria-labelledby="subscriber-list-title">
+            <div class="newsletter-card-heading">
+              <div>
+                <h3 id="subscriber-list-title">Your audience</h3>
+                <p>Only opted-in subscribers are shown.</p>
+              </div>
+              <button class="admin-button-secondary" id="refresh-subscribers" type="button" aria-label="Refresh subscriber list">↻</button>
+            </div>
+            <div class="newsletter-subscriber-list" id="subscriber-list" aria-live="polite"></div>
+          </section>
+          <form class="newsletter-campaign-form" id="newsletter-campaign-form">
+            <div class="newsletter-compose-icon" aria-hidden="true">✳</div>
+            <p class="admin-dialog-kicker">A NOTE FROM ECOSYNIC</p>
+            <h3>Compose a newsletter</h3>
+            <p class="newsletter-compose-lede">Your message goes separately to every active subscriber. Addresses stay private, and each email includes an unsubscribe link.</p>
+            <label for="campaign-subject">Subject
+              <input id="campaign-subject" name="subject" maxlength="150" placeholder="A clear, welcoming subject" required>
+            </label>
+            <label for="campaign-message">Your message
+              <textarea id="campaign-message" name="message" rows="6" maxlength="10000" placeholder="Share the latest from the field..." required></textarea>
+            </label>
+            <div class="newsletter-compose-footer">
+              <p class="newsletter-campaign-status" id="newsletter-campaign-status" role="status" aria-live="polite"></p>
+              <button class="admin-button" id="send-newsletter" type="submit" disabled>Review &amp; send <span aria-hidden="true">↗</span></button>
+            </div>
+          </form>
+        </div>
+      </section>
     </section>
   </main>
 

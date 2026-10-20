@@ -3,6 +3,7 @@ const dashboard = document.querySelector('#admin-dashboard');
 const loginForm = document.querySelector('#login-form');
 const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
+const sectionNav = document.querySelector('#admin-section-nav');
 const profileForm = document.querySelector('#profile-form');
 const profileFormTitle = document.querySelector('#profile-form-title');
 const profileDialog = document.querySelector('#profile-dialog');
@@ -27,8 +28,15 @@ const profileRole = document.querySelector('#profile-role');
 const profilePhone = document.querySelector('#profile-phone');
 const profileEmail = document.querySelector('#profile-email');
 const saveButton = document.querySelector('#save-profile');
+const subscriberCount = document.querySelector('#subscriber-count');
+const subscriberList = document.querySelector('#subscriber-list');
+const newsletterAdminError = document.querySelector('#newsletter-admin-error');
+const newsletterCampaignForm = document.querySelector('#newsletter-campaign-form');
+const newsletterCampaignStatus = document.querySelector('#newsletter-campaign-status');
+const sendNewsletterButton = document.querySelector('#send-newsletter');
 
 let profiles = [];
+let subscribers = [];
 let editingId = null;
 let photo = null;
 let previewUrl = '';
@@ -46,11 +54,34 @@ async function api(path, options = {}) {
 function showDashboard(storageReady) {
   loginPanel.hidden = true;
   dashboard.hidden = false;
+  sectionNav.hidden = false;
   logoutButton.classList.add('is-visible');
   storageNotice.hidden = storageReady;
-  storageNotice.textContent = storageReady ? '' : 'Photo and profile changes need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
+  storageNotice.textContent = storageReady ? '' : 'Team profile and newsletter data need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
+  setAdminSection(location.hash === '#newsletter-management' ? 'newsletter-management' : 'team-management');
   loadProfiles();
+  loadSubscribers();
 }
+
+function setAdminSection(sectionId) {
+  const activeSection = document.querySelector(`#${sectionId}`);
+  if (!activeSection) return;
+  dashboard.querySelectorAll('.admin-panel').forEach((section) => {
+    section.hidden = section !== activeSection;
+  });
+  sectionNav.querySelectorAll('a').forEach((link) => {
+    if (link.dataset.adminSection === sectionId) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+}
+
+sectionNav.addEventListener('click', (event) => {
+  const link = event.target.closest('a[data-admin-section]');
+  if (!link) return;
+  event.preventDefault();
+  setAdminSection(link.dataset.adminSection);
+  history.replaceState(null, '', link.hash);
+});
 
 async function checkSession() {
   try {
@@ -89,15 +120,98 @@ logoutButton.addEventListener('click', async () => {
     await api('/api/admin?action=logout', { method: 'POST' });
   } finally {
     dashboard.hidden = true;
+    sectionNav.hidden = true;
     logoutButton.classList.remove('is-visible');
     loginPanel.hidden = false;
     profiles = [];
     adminList.replaceChildren();
+    subscribers = [];
+    subscriberList.replaceChildren();
+    subscriberCount.textContent = 'Sign in to load subscribers.';
+    sendNewsletterButton.disabled = true;
   }
 });
 
 document.querySelector('#new-profile').addEventListener('click', () => openForm());
 document.querySelector('#cancel-profile').addEventListener('click', closeForm);
+document.querySelector('#refresh-subscribers').addEventListener('click', loadSubscribers);
+
+newsletterCampaignForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const campaign = Object.fromEntries(new FormData(newsletterCampaignForm));
+  if (!subscribers.some((subscriber) => subscriber.status === 'active')) {
+    newsletterCampaignStatus.textContent = 'There are no active subscribers to email.';
+    return;
+  }
+  newsletterCampaignStatus.textContent = '';
+  requestConfirmation({
+    title: 'Send this newsletter?',
+    message: `Send “${campaign.subject}” to all ${subscribers.filter((subscriber) => subscriber.status === 'active').length} active subscribers? Each person receives a separate email.`,
+    confirmLabel: 'Send newsletter',
+    run: () => sendNewsletter(campaign),
+  });
+});
+
+async function loadSubscribers() {
+  newsletterAdminError.textContent = '';
+  subscriberCount.textContent = '...';
+  sendNewsletterButton.disabled = true;
+  try {
+    const result = await api('/api/newsletter?action=admin');
+    subscribers = result.subscribers;
+    subscriberCount.textContent = String(result.activeCount);
+    renderSubscribers();
+    sendNewsletterButton.disabled = result.activeCount === 0;
+  } catch (error) {
+    subscriberCount.textContent = '—';
+    newsletterAdminError.textContent = error.message;
+    subscriberList.replaceChildren();
+  }
+}
+
+function renderSubscribers() {
+  subscriberList.replaceChildren();
+  if (!subscribers.length) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = 'No newsletter subscriptions yet.';
+    subscriberList.append(empty);
+    return;
+  }
+  subscribers.forEach((subscriber) => {
+    const row = document.createElement('div');
+    row.className = 'newsletter-subscriber-row';
+    const details = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = subscriber.name;
+    const email = document.createElement('span');
+    email.textContent = subscriber.email;
+    details.append(name, email);
+    const state = document.createElement('span');
+    state.className = `newsletter-subscriber-state is-${subscriber.status}`;
+    state.textContent = subscriber.status === 'active' ? 'Subscribed' : 'Unsubscribed';
+    row.append(details, state);
+    subscriberList.append(row);
+  });
+}
+
+async function sendNewsletter(campaign) {
+  sendNewsletterButton.disabled = true;
+  newsletterCampaignStatus.textContent = 'Sending newsletter emails...';
+  try {
+    const result = await api('/api/newsletter?action=admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(campaign),
+    });
+    newsletterCampaignStatus.textContent = result.message;
+    showToast(result.message);
+  } catch (error) {
+    newsletterCampaignStatus.textContent = error.message;
+  } finally {
+    sendNewsletterButton.disabled = !subscribers.some((subscriber) => subscriber.status === 'active');
+  }
+}
 
 async function uploadPhoto(file) {
   photoError.textContent = '';
