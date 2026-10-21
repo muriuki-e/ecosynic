@@ -4,6 +4,14 @@ const loginForm = document.querySelector('#login-form');
 const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
 const sectionNav = document.querySelector('#admin-section-nav');
+const contentPageSelect = document.querySelector('#content-page');
+const contentSearch = document.querySelector('#content-search');
+const contentFieldCount = document.querySelector('#content-field-count');
+const contentEditorFields = document.querySelector('#content-editor-fields');
+const contentAdminError = document.querySelector('#content-admin-error');
+const saveSiteContentButton = document.querySelector('#save-site-content');
+const addContentSectionButton = document.querySelector('#add-content-section');
+const contentAddedList = document.querySelector('#content-added-list');
 const profileForm = document.querySelector('#profile-form');
 const profileFormTitle = document.querySelector('#profile-form-title');
 const profileDialog = document.querySelector('#profile-dialog');
@@ -43,6 +51,11 @@ let previewUrl = '';
 let photoUploadPending = false;
 let pendingAction = null;
 let toastTimer = null;
+let siteContent = { overrides: {}, sections: {} };
+let contentFieldsByPage = {};
+let contentDrafts = {};
+let selectedContentPage = '';
+let contentPageLoadSequence = 0;
 
 async function api(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options });
@@ -57,10 +70,12 @@ function showDashboard(storageReady) {
   sectionNav.hidden = false;
   logoutButton.classList.add('is-visible');
   storageNotice.hidden = storageReady;
-  storageNotice.textContent = storageReady ? '' : 'Team profile and newsletter data need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
-  setAdminSection(location.hash === '#newsletter-management' ? 'newsletter-management' : 'team-management');
+  storageNotice.textContent = storageReady ? '' : 'Team profiles, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
+  const requestedSection = location.hash.slice(1);
+  setAdminSection(['content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
   loadProfiles();
   loadSubscribers();
+  loadSiteContent();
 }
 
 function setAdminSection(sectionId) {
@@ -81,6 +96,217 @@ sectionNav.addEventListener('click', (event) => {
   event.preventDefault();
   setAdminSection(link.dataset.adminSection);
   history.replaceState(null, '', link.hash);
+});
+
+async function loadSiteContent() {
+  contentAdminError.textContent = '';
+  contentFieldCount.textContent = 'Loading website content...';
+  try {
+    siteContent = await api('/api/content');
+    siteContent.overrides ||= {};
+    siteContent.sections ||= {};
+    contentPageSelect.replaceChildren();
+    contentFieldsByPage = {};
+    contentDrafts = {};
+    window.EcosynicContent.pages.forEach((page) => {
+      siteContent.overrides[page.id] ||= {};
+      siteContent.sections[page.id] ||= [];
+      const option = document.createElement('option');
+      option.value = page.id;
+      option.textContent = page.label;
+      contentPageSelect.append(option);
+    });
+    selectedContentPage = contentPageSelect.value;
+    await loadContentPage(selectedContentPage);
+  } catch (error) {
+    contentFieldCount.textContent = '';
+    contentAdminError.textContent = error.message;
+  }
+}
+
+async function loadContentPage(pageId) {
+  const loadSequence = ++contentPageLoadSequence;
+  contentAdminError.textContent = '';
+  contentFieldCount.textContent = 'Loading page text...';
+  const page = window.EcosynicContent.pages.find((entry) => entry.id === pageId);
+  if (!page) return;
+  try {
+    const response = await fetch(`/${page.file}`);
+    if (!response.ok) throw new Error(`Could not load ${page.label}.`);
+    const documentCopy = new DOMParser().parseFromString(await response.text(), 'text/html');
+    if (loadSequence !== contentPageLoadSequence) return;
+    const main = documentCopy.querySelector('main');
+    if (!main) throw new Error(`${page.label} does not contain editable page content.`);
+    contentFieldsByPage[pageId] = window.EcosynicContent.collectTextNodes(main).map(({ key, value, node }) => {
+      const section = node.parentElement.closest('section');
+      const heading = section?.querySelector('h1, h2, h3')?.cloneNode(true);
+      heading?.querySelectorAll('br').forEach((lineBreak) => lineBreak.replaceWith(' '));
+      const headingText = heading?.textContent.replace(/\s+/g, ' ').trim();
+      return {
+        key,
+        value,
+        label: `${node.parentElement.tagName.toLowerCase()}${headingText ? ` · ${headingText}` : ''}`,
+      };
+    });
+    contentPageSelect.value = pageId;
+    selectedContentPage = pageId;
+    renderContentFields();
+    renderAddedContentSections();
+  } catch (error) {
+    contentFieldCount.textContent = '';
+    contentAdminError.textContent = error.message;
+  }
+}
+
+function renderContentFields() {
+  const pageId = selectedContentPage;
+  const fields = contentFieldsByPage[pageId] || [];
+  const query = contentSearch.value.trim().toLowerCase();
+  const visible = fields.filter((field) => `${field.label} ${field.value}`.toLowerCase().includes(query));
+  contentEditorFields.replaceChildren();
+  contentFieldCount.textContent = `${visible.length} of ${fields.length} text fields`;
+  if (!visible.length) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = fields.length ? 'No text matches that search.' : 'No editable text was found on this page.';
+    contentEditorFields.append(empty);
+    return;
+  }
+
+  const overrides = siteContent.overrides[pageId] || {};
+  const drafts = contentDrafts[pageId] || {};
+  visible.forEach((field) => {
+    const label = document.createElement('label');
+    label.className = 'content-editor-field';
+    const caption = document.createElement('span');
+    caption.textContent = `${field.label}: ${field.value}`.slice(0, 180);
+    const value = drafts[field.key] ?? overrides[field.key] ?? field.value;
+    const input = value.length > 120 || value.includes('\n')
+      ? document.createElement('textarea')
+      : document.createElement('input');
+    if (input instanceof HTMLTextAreaElement) input.rows = Math.min(7, Math.max(2, Math.ceil(value.length / 90)));
+    input.value = value;
+    input.addEventListener('input', () => {
+      contentDrafts[pageId] ||= {};
+      contentDrafts[pageId][field.key] = input.value;
+    });
+    label.append(caption, input);
+    contentEditorFields.append(label);
+  });
+}
+
+function renderAddedContentSections() {
+  const sections = siteContent.sections[selectedContentPage] || [];
+  contentAddedList.replaceChildren();
+  if (!sections.length) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = 'No additional sections on this page yet.';
+    contentAddedList.append(empty);
+    return;
+  }
+
+  sections.forEach((section, index) => {
+    const card = document.createElement('article');
+    card.className = 'content-added-card';
+    const titleLabel = document.createElement('label');
+    titleLabel.textContent = 'Section heading';
+    const title = document.createElement('input');
+    title.maxLength = 120;
+    title.required = true;
+    title.value = section.title;
+    title.addEventListener('input', () => {
+      section.title = title.value;
+    });
+    titleLabel.append(title);
+    const bodyLabel = document.createElement('label');
+    bodyLabel.textContent = 'Section text';
+    const body = document.createElement('textarea');
+    body.maxLength = 5000;
+    body.rows = 4;
+    body.required = true;
+    body.value = section.body;
+    body.addEventListener('input', () => {
+      section.body = body.value;
+    });
+    bodyLabel.append(body);
+    const actions = document.createElement('div');
+    actions.className = 'content-added-actions';
+    const up = document.createElement('button');
+    up.type = 'button';
+    up.className = 'admin-button-secondary';
+    up.textContent = 'Move up';
+    up.disabled = index === 0;
+    up.addEventListener('click', () => moveContentSection(index, -1));
+    const down = document.createElement('button');
+    down.type = 'button';
+    down.className = 'admin-button-secondary';
+    down.textContent = 'Move down';
+    down.disabled = index === sections.length - 1;
+    down.addEventListener('click', () => moveContentSection(index, 1));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'admin-button-secondary';
+    remove.textContent = 'Remove';
+    remove.addEventListener('click', () => {
+      sections.splice(index, 1);
+      renderAddedContentSections();
+    });
+    actions.append(up, down, remove);
+    card.append(titleLabel, bodyLabel, actions);
+    contentAddedList.append(card);
+  });
+}
+
+function moveContentSection(index, direction) {
+  const sections = siteContent.sections[selectedContentPage];
+  const destination = index + direction;
+  [sections[index], sections[destination]] = [sections[destination], sections[index]];
+  renderAddedContentSections();
+}
+
+contentPageSelect.addEventListener('change', () => {
+  loadContentPage(contentPageSelect.value);
+});
+contentSearch.addEventListener('input', renderContentFields);
+addContentSectionButton.addEventListener('click', () => {
+  const sections = siteContent.sections[selectedContentPage];
+  if (sections.length >= 40) {
+    contentAdminError.textContent = 'A page can contain up to 40 added sections.';
+    return;
+  }
+  sections.push({ id: crypto.randomUUID(), title: '', body: '' });
+  contentAdminError.textContent = '';
+  renderAddedContentSections();
+  contentAddedList.lastElementChild?.querySelector('input')?.focus();
+});
+saveSiteContentButton.addEventListener('click', async () => {
+  contentAdminError.textContent = '';
+  saveSiteContentButton.disabled = true;
+  saveSiteContentButton.textContent = 'Saving...';
+  try {
+    Object.entries(contentFieldsByPage).forEach(([pageId, fields]) => {
+      const overrides = siteContent.overrides[pageId];
+      fields.forEach((field) => {
+        const value = contentDrafts[pageId]?.[field.key];
+        if (value === undefined) return;
+        if (value === field.value) delete overrides[field.key];
+        else overrides[field.key] = value;
+      });
+    });
+    await api('/api/content', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(siteContent),
+    });
+    contentDrafts = {};
+    showToast('Website content saved.');
+  } catch (error) {
+    contentAdminError.textContent = error.message;
+  } finally {
+    saveSiteContentButton.disabled = false;
+    saveSiteContentButton.textContent = 'Save page changes';
+  }
 });
 
 async function checkSession() {

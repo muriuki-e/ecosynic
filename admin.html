@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="site-content.js" defer></script>
   <script src="admin.js" defer></script>
 </head>
 <body class="admin-page">
@@ -23,6 +24,7 @@
   </header>
   <nav class="admin-section-nav" id="admin-section-nav" aria-label="Admin sections" hidden>
     <a href="#team-management" data-admin-section="team-management" aria-current="page">Manage team</a>
+    <a href="#content-management" data-admin-section="content-management">Website content</a>
     <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
   </nav>
   <main class="admin-main">
@@ -105,6 +107,38 @@
             </div>
           </form>
         </div>
+      </section>
+
+      <section class="admin-panel content-admin" id="content-management" aria-labelledby="content-admin-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <p class="admin-dialog-kicker">PAGES & STORIES</p>
+            <h2 id="content-admin-title">Website content</h2>
+            <p class="admin-lede">Update text across every public page and add simple sections without changing the site design.</p>
+          </div>
+          <button class="admin-button" id="save-site-content" type="button">Save page changes</button>
+        </div>
+        <p class="admin-error" id="content-admin-error" role="alert"></p>
+        <div class="content-editor-toolbar">
+          <label for="content-page">Choose a page
+            <select id="content-page"></select>
+          </label>
+          <label for="content-search">Find text
+            <input id="content-search" type="search" placeholder="Filter headings and text">
+          </label>
+          <p class="admin-lede" id="content-field-count">Loading page text...</p>
+        </div>
+        <div class="content-editor-fields" id="content-editor-fields" aria-live="polite"></div>
+        <section class="content-added-editor" aria-labelledby="content-added-title">
+          <div class="admin-toolbar">
+            <div>
+              <h3 id="content-added-title">Additional sections</h3>
+              <p class="admin-lede">New sections appear after the page’s existing content. Reorder them here.</p>
+            </div>
+            <button class="admin-button-secondary" id="add-content-section" type="button">Add section <span aria-hidden="true">+</span></button>
+          </div>
+          <div class="content-added-list" id="content-added-list"></div>
+        </section>
       </section>
     </section>
   </main>

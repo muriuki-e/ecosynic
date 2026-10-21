@@ -3,7 +3,7 @@ const path = require('node:path');
 const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
-const { handleAdmin, handleTeam, handleTeamPhoto } = require('./lib/team-api');
+const { handleAdmin, handleContent, handleTeam, handleTeamPhoto } = require('./lib/team-api');
 const { handleNewsletter, unsubscribe } = require('./lib/newsletter-api');
 
 const ROOT = __dirname;
@@ -65,6 +65,7 @@ const publicFiles = new Set([
   'styles.css',
   'script.js',
   'admin.js',
+  'site-content.js',
   'team.js',
   'newsletter-unsubscribe.js',
   ...fs.readdirSync(path.join(ROOT, 'images'))
@@ -429,6 +430,10 @@ async function handleRequest(request, response) {
   }
   if (url.pathname === '/api/team') {
     await handleTeam(request, response);
+    return;
+  }
+  if (url.pathname === '/api/content') {
+    await handleContent(request, response);
     return;
   }
   if (url.pathname === '/api/team-photo') {
