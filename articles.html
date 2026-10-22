@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ed">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="description" content="Read the latest news, stories and event updates from Ecosynic Africa.">
+  <link rel="canonical" href="https://ecosynic.or.ke/articles">
+  <title>Articles &amp; News | Ecosynic Africa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+  <script src="site-content.js" defer></script>
+  <script src="articles.js" defer></script>
+</head>
+<body id="top" class="info-page articles-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button>
+    <nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+      <a href="index.html#about">About</a>
+      <a href="index.html#work">Our work</a>
+      <a href="index.html#impact">Impact</a>
+      <a href="index.html#knowledge">Knowledge</a>
+      <a href="index.html#partners">Partners</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="staff.html">Our team</a>
+      <a href="index.html#contact" class="nav-contact">Get in touch <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main>
+    <section class="info-hero articles-hero" aria-labelledby="articles-title">
+      <p class="eyebrow light"><span class="eyebrow-line"></span> NOTES FROM THE FIELD</p>
+      <h1 id="articles-title">Stories, news<br><em>&amp; events.</em></h1>
+      <p class="staff-hero-copy">Updates from Ecosynic Africa, our work with communities, and events bringing people together.</p>
+    </section>
+    <section class="articles-content section-wrap" aria-label="Articles and events">
+      <div class="articles-toolbar">
+        <div class="articles-filters" role="group" aria-label="Filter articles and events">
+          <button class="articles-filter is-active" type="button" data-article-filter="all" aria-pressed="true">All updates</button>
+          <button class="articles-filter" type="button" data-article-filter="news" aria-pressed="false">News &amp; stories</button>
+          <button class="articles-filter" type="button" data-article-filter="upcoming" aria-pressed="false">Upcoming events</button>
+          <button class="articles-filter" type="button" data-article-filter="past" aria-pressed="false">Past events</button>
+        </div>
+        <p class="articles-count" id="articles-count" role="status" aria-live="polite">Loading updates...</p>
+      </div>
+      <p class="articles-error" id="articles-error" role="alert"></p>
+      <div class="articles-list" id="articles-list" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-top"><a class="brand footer-brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a><p>Climate. Nature. Agriculture.<br>Technology. People.</p><a class="back-top" href="#top">BACK TO TOP <span aria-hidden="true">↑</span></a></div>
+    <div class="footer-main">
+      <div class="footer-summary"><p>Centre for Climate Innovation developing practical, technology-enabled solutions for a resilient Africa.</p><span>MERU COUNTY, KENYA</span></div>
+      <div class="footer-column"><span>EXPLORE</span><a href="index.html#about">About</a><a href="index.html#work">Our work</a><a href="index.html#impact">Impact</a></div>
+      <div class="footer-column"><span>OUR WORK</span><a href="climate-resilience.html">Climate resilience</a><a href="ecosystem-restoration.html">Ecosystem restoration</a><a href="smart-agriculture.html">Smart agriculture</a></div>
+      <div class="footer-column"><span>INNOVATION</span><a href="climate-technology.html">Climate technology</a><a href="green-livelihoods.html">Green livelihoods</a><a href="community-leadership.html">Community leadership</a></div>
+      <div class="footer-column"><span>CONNECT</span><a href="mailto:info@ecosynic.or.ke">Email Ecosynic ↗</a><a href="index.html#contact">Contact ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© <span id="year"></span> Ecosynic Africa</span><span>INNOVATION ROOTED IN PLACE. BUILT FOR WHAT'S NEXT.</span><a href="index.html#work">ALL WORK PATHWAYS</a></div>
+  </footer>
+</body>
+</html>

@@ -8,6 +8,17 @@ if (primaryNav && !primaryNav.querySelector('a[href="staff.html"]')) {
   primaryNav.insertBefore(staffLink, primaryNav.querySelector('.nav-contact'));
 }
 
+if (primaryNav && !primaryNav.querySelector('a[href="articles.html"]')) {
+  const articlesLink = document.createElement('a');
+  articlesLink.href = 'articles.html';
+  articlesLink.textContent = 'Articles & news';
+  primaryNav.insertBefore(articlesLink, primaryNav.querySelector('.nav-contact'));
+}
+
+if (primaryNav && /(?:^|\/)articles(?:\.html)?\/?$/.test(location.pathname)) {
+  primaryNav.querySelector('a[href="articles.html"]')?.setAttribute('aria-current', 'page');
+}
+
 const footerMain = document.querySelector('.footer-main');
 if (footerMain && !footerMain.querySelector('.footer-resources')) {
   const resources = document.createElement('div');
@@ -19,6 +30,7 @@ if (footerMain && !footerMain.querySelector('.footer-resources')) {
     ['FAQs', 'faq.html'],
     ['Geographic scope', 'geographic-scope.html'],
     ['Newsletter', 'newsletter.html'],
+    ['Articles & news', 'articles.html'],
     ['Get involved', 'get-involved.html'],
   ].forEach(([label, href]) => {
     const link = document.createElement('a');

@@ -3,6 +3,7 @@
     { id: 'index', label: 'Home page', file: 'index.html' },
     { id: 'staff', label: 'Our team', file: 'staff.html' },
     { id: 'gallery', label: 'Photo gallery', file: 'gallery.html' },
+    { id: 'articles', label: 'Articles & news', file: 'articles.html' },
     { id: 'climate-resilience', label: 'Climate resilience', file: 'climate-resilience.html' },
     { id: 'ecosystem-restoration', label: 'Ecosystem restoration', file: 'ecosystem-restoration.html' },
     { id: 'smart-agriculture', label: 'Smart agriculture', file: 'smart-agriculture.html' },
@@ -54,6 +55,50 @@
     return id === 'home' ? 'index' : id;
   }
 
+  function addLongTextToggles(root) {
+    if (!root) return;
+    let toggleIndex = 0;
+    root.querySelectorAll('p').forEach((paragraph) => {
+      if (paragraph.closest('.site-long-text') || paragraph.classList.contains('eyebrow')) return;
+      const paragraphStyle = getComputedStyle(paragraph);
+      const lineHeight = Number.parseFloat(paragraphStyle.lineHeight)
+        || Number.parseFloat(paragraphStyle.fontSize) * 1.5;
+      const maxHeight = lineHeight * 5;
+      if (!Number.isFinite(maxHeight) || maxHeight <= 0) return;
+      paragraph.classList.add('site-long-text-copy');
+      paragraph.style.setProperty('--site-long-text-max-height', `${maxHeight}px`);
+      if (paragraph.scrollHeight <= maxHeight + 1) {
+        paragraph.classList.remove('site-long-text-copy');
+        paragraph.style.removeProperty('--site-long-text-max-height');
+        return;
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'site-long-text';
+      paragraph.parentNode.insertBefore(wrapper, paragraph);
+      wrapper.append(paragraph);
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'site-long-text-toggle';
+      toggle.textContent = 'See more';
+      toggle.setAttribute('aria-expanded', 'false');
+      let paragraphId;
+      do {
+        paragraphId = `site-long-text-${++toggleIndex}`;
+      } while (document.getElementById(paragraphId));
+      toggle.setAttribute('aria-controls', paragraphId);
+      paragraph.id = paragraphId;
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(expanded));
+        paragraph.classList.toggle('is-expanded', expanded);
+        toggle.textContent = expanded ? 'See less' : 'See more';
+      });
+      wrapper.append(toggle);
+    });
+  }
+
   window.EcosynicContent = { pages, collectTextNodes, currentPage };
 
   const pageId = currentPage();
@@ -92,8 +137,10 @@
         wrapper.append(inner);
         main?.append(wrapper);
       });
+      addLongTextToggles(main);
     } catch (error) {
       console.error('Could not load website content:', error.message || error);
+      addLongTextToggles(main);
     }
   }
 

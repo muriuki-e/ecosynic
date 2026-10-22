@@ -10,21 +10,39 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    (() => {
+      try {
+        const theme = localStorage.getItem('ecosynic-theme');
+        if (theme === 'dark' || theme === 'light') document.documentElement.dataset.theme = theme;
+      } catch {
+        // The dashboard still loads in light mode when storage is unavailable.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
   <script src="site-content.js" defer></script>
   <script src="admin.js" defer></script>
 </head>
 <body class="admin-page">
   <header class="admin-header">
-    <a class="admin-brand" href="/home">Ecosynic Africa <span>Team administration</span></a>
+    <a class="admin-brand" href="/home" aria-label="Ecosynic Africa home">
+      <img src="/Ecosynic%20Africa%20Shield%20Logo.png" alt="Ecosynic Africa">
+      <span>Team administration</span>
+    </a>
     <div class="admin-header-actions">
       <a href="/staff">View team page</a>
+      <button class="theme-toggle admin-theme-toggle" id="admin-theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode">
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg>
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      </button>
       <button id="admin-logout" type="button">Sign out</button>
     </div>
   </header>
   <nav class="admin-section-nav" id="admin-section-nav" aria-label="Admin sections" hidden>
     <a href="#team-management" data-admin-section="team-management" aria-current="page">Manage team</a>
     <a href="#gallery-management" data-admin-section="gallery-management">Photo gallery</a>
+    <a href="#articles-management" data-admin-section="articles-management">Articles &amp; news</a>
     <a href="#content-management" data-admin-section="content-management">Website content</a>
     <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
   </nav>
@@ -48,7 +66,7 @@
       <div>
         <p class="admin-dialog-kicker">ECOSYNIC AFRICA · ADMIN</p>
         <h1 id="dashboard-title">Your workspace</h1>
-        <p class="admin-lede">Manage your team directory and keep subscribers up to date.</p>
+        <p class="admin-lede">Manage your team, publish articles and events, and keep subscribers up to date.</p>
       </div>
       <p class="admin-notice" id="storage-notice" hidden></p>
       <section class="admin-panel" id="team-management" aria-labelledby="team-management-title">
@@ -93,6 +111,79 @@
         <p class="admin-lede gallery-upload-guidance">JPEG, PNG or WebP · up to 4 MB. A short description helps visitors using screen readers.</p>
         <p class="admin-error" id="gallery-admin-error" role="alert"></p>
         <div class="admin-list gallery-admin-list" id="gallery-admin-list" aria-live="polite"></div>
+      </section>
+
+      <section class="admin-panel articles-admin" id="articles-management" aria-labelledby="articles-management-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <p class="admin-dialog-kicker">STORIES &amp; EVENTS</p>
+            <h2 id="articles-management-title">Articles &amp; news</h2>
+            <p class="admin-lede">Share organization news and stories, or announce upcoming events. Edit an event later to mark it as past.</p>
+          </div>
+        </div>
+        <form class="article-editor-form" id="article-form">
+          <div class="article-editor-grid">
+            <label for="article-title">Title
+              <input id="article-title" name="title" maxlength="160" required>
+            </label>
+            <label for="article-type">Entry type
+              <select id="article-type" name="type">
+                <option value="news">Article / news</option>
+                <option value="event">Event</option>
+              </select>
+            </label>
+            <label for="article-date">Publication or event date
+              <input id="article-date" name="date" type="date" required>
+            </label>
+            <label for="article-status" id="article-status-field" hidden>Event status
+              <select id="article-status" name="status">
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past event</option>
+              </select>
+            </label>
+          </div>
+          <div class="article-media-grid">
+            <div class="article-image-field">
+              <label class="article-image-label" for="article-image">Article image <span>(optional)</span></label>
+              <div class="article-image-dropzone" id="article-image-dropzone">
+                <input class="admin-photo-input" id="article-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="article-image-guidance">
+                <span class="admin-upload-icon" aria-hidden="true">↑</span>
+                <span class="admin-upload-title" id="article-image-title">Browse or drag an image here</span>
+                <span class="admin-upload-guidance" id="article-image-guidance">JPEG, PNG or WebP · up to 4 MB</span>
+              </div>
+              <img class="article-image-preview" id="article-image-preview" alt="Article image preview" hidden>
+            </div>
+            <div class="article-media-options">
+              <label for="article-image-alt">Image description
+                <input id="article-image-alt" name="imageAlt" maxlength="200" placeholder="Describe the image for screen readers">
+              </label>
+              <label class="article-video-field" id="article-video-field" for="article-video-url" hidden>YouTube video link <span>(optional, for events)</span>
+                <input id="article-video-url" name="videoUrl" type="url" maxlength="500" placeholder="https://www.youtube.com/watch?v=...">
+                <span class="article-field-hint">Videos are embedded from YouTube on the public page.</span>
+              </label>
+              <label class="article-remove-image" id="article-remove-image-field" for="article-remove-image" hidden>
+                <input id="article-remove-image" type="checkbox">
+                Remove the current image
+              </label>
+            </div>
+          </div>
+          <label for="article-summary">Short summary
+            <textarea id="article-summary" name="summary" rows="3" maxlength="320" required></textarea>
+          </label>
+          <label for="article-content">Article or event details
+            <textarea id="article-content" name="content" rows="8" maxlength="12000" required></textarea>
+          </label>
+          <p class="admin-error" id="article-admin-error" role="alert"></p>
+          <div class="article-editor-actions">
+            <button class="admin-button" id="save-article" type="submit">Publish news <span aria-hidden="true">↗</span></button>
+            <button class="admin-button-secondary" id="cancel-article-edit" type="button" hidden>Cancel edit</button>
+          </div>
+        </form>
+        <div class="admin-toolbar article-list-toolbar">
+          <div><h3>Published articles and events</h3><p class="admin-lede" id="article-count">Loading...</p></div>
+        </div>
+        <p class="admin-error" id="article-list-error" role="alert"></p>
+        <div class="admin-list article-admin-list" id="article-admin-list" aria-live="polite"></div>
       </section>
 
       <section class="admin-panel newsletter-admin" id="newsletter-management" aria-labelledby="newsletter-admin-title" hidden>

@@ -3,6 +3,7 @@ const dashboard = document.querySelector('#admin-dashboard');
 const loginForm = document.querySelector('#login-form');
 const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
+const themeToggle = document.querySelector('#admin-theme-toggle');
 const sectionNav = document.querySelector('#admin-section-nav');
 const contentPageSelect = document.querySelector('#content-page');
 const contentSearch = document.querySelector('#content-search');
@@ -50,10 +51,37 @@ const galleryAltInput = document.querySelector('#gallery-alt');
 const galleryAdminError = document.querySelector('#gallery-admin-error');
 const galleryAdminList = document.querySelector('#gallery-admin-list');
 const addGalleryPhotoButton = document.querySelector('#add-gallery-photo');
+const articleForm = document.querySelector('#article-form');
+const articleTitleInput = document.querySelector('#article-title');
+const articleTypeSelect = document.querySelector('#article-type');
+const articleDateInput = document.querySelector('#article-date');
+const articleStatusField = document.querySelector('#article-status-field');
+const articleStatusSelect = document.querySelector('#article-status');
+const articleImageInput = document.querySelector('#article-image');
+const articleImageDropzone = document.querySelector('#article-image-dropzone');
+const articleImageTitle = document.querySelector('#article-image-title');
+const articleImagePreview = document.querySelector('#article-image-preview');
+const articleImageAltInput = document.querySelector('#article-image-alt');
+const articleVideoField = document.querySelector('#article-video-field');
+const articleVideoUrlInput = document.querySelector('#article-video-url');
+const articleRemoveImageField = document.querySelector('#article-remove-image-field');
+const articleRemoveImageInput = document.querySelector('#article-remove-image');
+const articleSummaryInput = document.querySelector('#article-summary');
+const articleContentInput = document.querySelector('#article-content');
+const articleAdminError = document.querySelector('#article-admin-error');
+const articleListError = document.querySelector('#article-list-error');
+const articleAdminList = document.querySelector('#article-admin-list');
+const articleCount = document.querySelector('#article-count');
+const saveArticleButton = document.querySelector('#save-article');
+const cancelArticleEditButton = document.querySelector('#cancel-article-edit');
 
 let profiles = [];
 let subscribers = [];
 let galleryImages = [];
+let articles = [];
+let editingArticleId = null;
+let articleImage = null;
+let articleImagePreviewUrl = '';
 let editingId = null;
 let photo = null;
 let previewUrl = '';
@@ -65,6 +93,24 @@ let contentFieldsByPage = {};
 let contentDrafts = {};
 let selectedContentPage = '';
 let contentPageLoadSequence = 0;
+
+function updateTheme(theme, savePreference = false) {
+  document.documentElement.dataset.theme = theme;
+  themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  if (!savePreference) return;
+  try {
+    localStorage.setItem('ecosynic-theme', theme);
+  } catch {
+    // The current dashboard still changes theme when storage is unavailable.
+  }
+}
+
+updateTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+themeToggle.addEventListener('click', () => {
+  updateTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', true);
+});
 
 async function api(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options });
@@ -81,9 +127,10 @@ function showDashboard(storageReady) {
   storageNotice.hidden = storageReady;
   storageNotice.textContent = storageReady ? '' : 'Team profiles, gallery photos, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
   const requestedSection = location.hash.slice(1);
-  setAdminSection(['gallery-management', 'content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
+  setAdminSection(['gallery-management', 'articles-management', 'content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
   loadProfiles();
   loadGallery();
+  loadArticles();
   loadSubscribers();
   loadSiteContent();
 }
@@ -188,19 +235,31 @@ function renderContentFields() {
   visible.forEach((field) => {
     const label = document.createElement('label');
     label.className = 'content-editor-field';
-    const caption = document.createElement('span');
-    caption.textContent = `${field.label}: ${field.value}`.slice(0, 180);
+    const fieldHeader = document.createElement('span');
+    fieldHeader.className = 'content-editor-field-header';
+    const location = document.createElement('span');
+    location.className = 'content-editor-field-location';
+    const [elementName, sectionName] = field.label.split(' · ', 2);
+    location.textContent = elementName;
+    const context = document.createElement('span');
+    context.className = 'content-editor-field-context';
+    context.textContent = sectionName || 'Page text';
+    fieldHeader.append(location, context);
+    const preview = document.createElement('span');
+    preview.className = 'content-editor-field-preview';
+    preview.textContent = field.value.slice(0, 120);
     const value = drafts[field.key] ?? overrides[field.key] ?? field.value;
     const input = value.length > 120 || value.includes('\n')
       ? document.createElement('textarea')
       : document.createElement('input');
+    input.setAttribute('aria-label', `Edit ${field.label}`);
     if (input instanceof HTMLTextAreaElement) input.rows = Math.min(7, Math.max(2, Math.ceil(value.length / 90)));
     input.value = value;
     input.addEventListener('input', () => {
       contentDrafts[pageId] ||= {};
       contentDrafts[pageId][field.key] = input.value;
     });
-    label.append(caption, input);
+    label.append(fieldHeader, preview, input);
     contentEditorFields.append(label);
   });
 }
@@ -365,6 +424,10 @@ logoutButton.addEventListener('click', async () => {
     galleryAdminList.replaceChildren();
     galleryUploadForm.reset();
     galleryAdminError.textContent = '';
+    articles = [];
+    articleAdminList.replaceChildren();
+    articleCount.textContent = 'Sign in to manage articles and events.';
+    resetArticleForm();
     subscribers = [];
     subscriberList.replaceChildren();
     subscriberCount.textContent = 'Sign in to load subscribers.';
@@ -501,6 +564,279 @@ function deleteGalleryImage(image) {
         showToast('Photo removed from the gallery.');
       } catch (error) {
         galleryAdminError.textContent = error.message;
+      }
+    },
+  });
+}
+
+articleTypeSelect.addEventListener('change', updateArticleStatusField);
+articleImageInput.addEventListener('change', () => selectArticleImage(articleImageInput.files?.[0]));
+articleImageDropzone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  articleImageDropzone.classList.add('is-dragging');
+});
+articleImageDropzone.addEventListener('dragleave', (event) => {
+  if (!articleImageDropzone.contains(event.relatedTarget)) {
+    articleImageDropzone.classList.remove('is-dragging');
+  }
+});
+articleImageDropzone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  articleImageDropzone.classList.remove('is-dragging');
+  const [file] = event.dataTransfer?.files || [];
+  if (!file) return;
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  articleImageInput.files = transfer.files;
+  selectArticleImage(file);
+});
+articleRemoveImageInput.addEventListener('change', () => {
+  if (articleRemoveImageInput.checked) {
+    discardUploadedArticleImage(articleImage);
+    articleImage = null;
+    articleImageInput.value = '';
+    articleImageAltInput.value = '';
+    if (articleImagePreviewUrl.startsWith('blob:')) URL.revokeObjectURL(articleImagePreviewUrl);
+    articleImagePreviewUrl = '';
+    articleImagePreview.hidden = true;
+    articleImageTitle.textContent = 'Current image will be removed';
+  } else {
+    const existing = articles.find((article) => article.id === editingArticleId);
+    articleImagePreview.hidden = !existing?.imageUrl;
+    articleImagePreview.src = existing?.imageUrl || '';
+    articleImageTitle.textContent = existing?.imageUrl ? 'Current image attached' : 'Browse or drag an image here';
+  }
+});
+
+function selectArticleImage(file) {
+  articleAdminError.textContent = '';
+  discardUploadedArticleImage(articleImage);
+  articleImage = null;
+  articleRemoveImageInput.checked = false;
+  if (articleImagePreviewUrl.startsWith('blob:')) URL.revokeObjectURL(articleImagePreviewUrl);
+  articleImagePreviewUrl = '';
+  if (!file) {
+    const existing = articles.find((article) => article.id === editingArticleId);
+    articleImagePreview.hidden = !existing?.imageUrl || articleRemoveImageInput.checked;
+    articleImagePreview.src = existing?.imageUrl || '';
+    articleImageTitle.textContent = existing?.imageUrl ? 'Current image attached' : 'Browse or drag an image here';
+    return;
+  }
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 4_000_000) {
+    articleAdminError.textContent = 'Choose a JPEG, PNG or WebP image under 4 MB.';
+    articleImageInput.value = '';
+    articleImagePreview.hidden = true;
+    articleImageTitle.textContent = 'Browse or drag an image here';
+    return;
+  }
+  articleImagePreviewUrl = URL.createObjectURL(file);
+  articleImagePreview.src = articleImagePreviewUrl;
+  articleImagePreview.hidden = false;
+  articleImageTitle.textContent = file.name;
+}
+
+function discardUploadedArticleImage(image) {
+  if (!image?.path || articles.some((article) => article.imagePath === image.path)) return;
+  api(`/api/article-image?path=${encodeURIComponent(image.path)}`, { method: 'DELETE' })
+    .catch((error) => {
+      articleAdminError.textContent = `Could not remove an unused uploaded image: ${error.message}`;
+    });
+}
+
+articleForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  articleAdminError.textContent = '';
+  const type = articleTypeSelect.value;
+  const isEditing = Boolean(editingArticleId);
+  const selectedImage = articleImageInput.files?.[0];
+  if (selectedImage && (!['image/jpeg', 'image/png', 'image/webp'].includes(selectedImage.type) || selectedImage.size > 4_000_000)) {
+    articleAdminError.textContent = 'Choose a JPEG, PNG or WebP image under 4 MB.';
+    return;
+  }
+  if (selectedImage && !articleImageAltInput.value.trim()) {
+    articleAdminError.textContent = 'Add a description for the article image.';
+    articleImageAltInput.focus();
+    return;
+  }
+  saveArticleButton.disabled = true;
+  saveArticleButton.textContent = isEditing ? 'Saving...' : 'Publishing...';
+  try {
+    if (selectedImage && !articleImage) {
+      articleImage = await api('/api/article-image', {
+        method: 'POST',
+        headers: { 'Content-Type': selectedImage.type },
+        body: selectedImage,
+      });
+      articleImagePreview.src = articleImage.url;
+      articleImagePreview.hidden = false;
+      articleImageTitle.textContent = selectedImage.name;
+    }
+    const existingArticle = articles.find((article) => article.id === editingArticleId);
+    const retainedImage = existingArticle && !articleRemoveImageInput.checked ? existingArticle : null;
+    const image = articleImage || retainedImage;
+    const payload = {
+      title: articleTitleInput.value,
+      type,
+      date: articleDateInput.value,
+      status: type === 'event' ? articleStatusSelect.value : 'published',
+      summary: articleSummaryInput.value,
+      content: articleContentInput.value,
+      imageUrl: articleRemoveImageInput.checked ? '' : image?.url || '',
+      imagePath: articleRemoveImageInput.checked ? '' : image?.path || '',
+      imageAlt: articleRemoveImageInput.checked ? '' : articleImage ? articleImageAltInput.value.trim() : image?.imageAlt || '',
+      videoUrl: type === 'event' ? articleVideoUrlInput.value.trim() : '',
+    };
+    const route = isEditing ? `/api/articles?id=${encodeURIComponent(editingArticleId)}` : '/api/articles';
+    const result = await api(route, {
+      method: isEditing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    articles = result.articles;
+    renderArticles();
+    resetArticleForm();
+    showToast(isEditing ? 'Article updated.' : 'Article published.');
+  } catch (error) {
+    articleAdminError.textContent = error.message;
+  } finally {
+    saveArticleButton.disabled = false;
+    updateArticleStatusField();
+  }
+});
+
+cancelArticleEditButton.addEventListener('click', resetArticleForm);
+
+function updateArticleStatusField() {
+  const isEvent = articleTypeSelect.value === 'event';
+  articleStatusField.hidden = !isEvent;
+  articleVideoField.hidden = !isEvent;
+  if (!isEvent) articleVideoUrlInput.value = '';
+  saveArticleButton.innerHTML = editingArticleId
+    ? 'Save changes'
+    : isEvent ? 'Publish event <span aria-hidden="true">↗</span>' : 'Publish news <span aria-hidden="true">↗</span>';
+}
+
+function resetArticleForm() {
+  discardUploadedArticleImage(articleImage);
+  articleForm.reset();
+  editingArticleId = null;
+  articleImage = null;
+  if (articleImagePreviewUrl.startsWith('blob:')) URL.revokeObjectURL(articleImagePreviewUrl);
+  articleImagePreviewUrl = '';
+  articleImagePreview.hidden = true;
+  articleImagePreview.removeAttribute('src');
+  articleImageTitle.textContent = 'Browse or drag an image here';
+  articleRemoveImageField.hidden = true;
+  const today = new Date();
+  articleDateInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  articleTypeSelect.value = 'news';
+  articleStatusSelect.value = 'upcoming';
+  articleAdminError.textContent = '';
+  cancelArticleEditButton.hidden = true;
+  updateArticleStatusField();
+}
+
+function editArticle(article) {
+  editingArticleId = article.id;
+  articleTitleInput.value = article.title;
+  articleTypeSelect.value = article.type;
+  articleDateInput.value = article.date;
+  articleStatusSelect.value = article.type === 'event' ? article.status : 'upcoming';
+  articleSummaryInput.value = article.summary;
+  articleContentInput.value = article.content;
+  articleVideoUrlInput.value = article.videoUrl || '';
+  articleImageAltInput.value = article.imageAlt || '';
+  articleImageInput.value = '';
+  articleRemoveImageInput.checked = false;
+  articleRemoveImageField.hidden = !article.imageUrl;
+  articleImagePreview.src = article.imageUrl || '';
+  articleImagePreview.hidden = !article.imageUrl;
+  articleImageTitle.textContent = article.imageUrl ? 'Current image attached' : 'Browse or drag an image here';
+  articleImage = null;
+  cancelArticleEditButton.hidden = false;
+  articleAdminError.textContent = '';
+  updateArticleStatusField();
+  articleForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  articleTitleInput.focus({ preventScroll: true });
+}
+
+async function loadArticles() {
+  articleListError.textContent = '';
+  articleCount.textContent = 'Loading...';
+  try {
+    const result = await api('/api/articles');
+    articles = result.articles;
+    renderArticles();
+  } catch (error) {
+    articleCount.textContent = '—';
+    articleListError.textContent = error.message;
+    articleAdminList.replaceChildren();
+  }
+}
+
+function renderArticles() {
+  articleAdminList.replaceChildren();
+  articleCount.textContent = `${articles.length} ${articles.length === 1 ? 'entry' : 'entries'}`;
+  if (!articles.length) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = 'No articles or events yet. Publish your first update above.';
+    articleAdminList.append(empty);
+    return;
+  }
+
+  [...articles].sort((first, second) => second.date.localeCompare(first.date)).forEach((article) => {
+    const row = document.createElement('article');
+    row.className = 'article-admin-row';
+    const details = document.createElement('div');
+    details.className = 'article-admin-details';
+    const meta = document.createElement('p');
+    meta.className = 'article-admin-meta';
+    meta.textContent = `${article.type === 'event' ? (article.status === 'past' ? 'Past event' : 'Upcoming event') : 'Article / news'} · ${formatArticleDate(article.date)}`;
+    const title = document.createElement('h3');
+    title.textContent = article.title;
+    const summary = document.createElement('p');
+    summary.textContent = article.summary;
+    details.append(meta, title, summary);
+    const actions = document.createElement('div');
+    actions.className = 'article-admin-actions';
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'admin-button-secondary';
+    edit.textContent = 'Edit';
+    edit.addEventListener('click', () => editArticle(article));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'admin-button-secondary';
+    remove.textContent = 'Delete';
+    remove.setAttribute('aria-label', `Delete ${article.type === 'event' ? 'event' : 'article'}: ${article.title}`);
+    remove.addEventListener('click', () => deleteArticle(article));
+    actions.append(edit, remove);
+    row.append(details, actions);
+    articleAdminList.append(row);
+  });
+}
+
+function formatArticleDate(date) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00.000Z`));
+}
+
+function deleteArticle(article) {
+  requestConfirmation({
+    title: 'Delete this entry?',
+    message: `Delete “${article.title}” from Articles & news?`,
+    confirmLabel: 'Delete entry',
+    danger: true,
+    run: async () => {
+      articleListError.textContent = '';
+      try {
+        const result = await api(`/api/articles?id=${encodeURIComponent(article.id)}`, { method: 'DELETE' });
+        articles = result.articles;
+        renderArticles();
+        if (editingArticleId === article.id) resetArticleForm();
+        showToast('Entry deleted.');
+      } catch (error) {
+        articleListError.textContent = error.message;
       }
     },
   });
