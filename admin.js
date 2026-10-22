@@ -42,9 +42,18 @@ const newsletterAdminError = document.querySelector('#newsletter-admin-error');
 const newsletterCampaignForm = document.querySelector('#newsletter-campaign-form');
 const newsletterCampaignStatus = document.querySelector('#newsletter-campaign-status');
 const sendNewsletterButton = document.querySelector('#send-newsletter');
+const galleryUploadForm = document.querySelector('#gallery-upload-form');
+const galleryPhotoInput = document.querySelector('#gallery-photo');
+const galleryPhotoDropzone = document.querySelector('#gallery-photo-dropzone');
+const galleryPhotoTitle = document.querySelector('#gallery-photo-title');
+const galleryAltInput = document.querySelector('#gallery-alt');
+const galleryAdminError = document.querySelector('#gallery-admin-error');
+const galleryAdminList = document.querySelector('#gallery-admin-list');
+const addGalleryPhotoButton = document.querySelector('#add-gallery-photo');
 
 let profiles = [];
 let subscribers = [];
+let galleryImages = [];
 let editingId = null;
 let photo = null;
 let previewUrl = '';
@@ -70,10 +79,11 @@ function showDashboard(storageReady) {
   sectionNav.hidden = false;
   logoutButton.classList.add('is-visible');
   storageNotice.hidden = storageReady;
-  storageNotice.textContent = storageReady ? '' : 'Team profiles, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
+  storageNotice.textContent = storageReady ? '' : 'Team profiles, gallery photos, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
   const requestedSection = location.hash.slice(1);
-  setAdminSection(['content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
+  setAdminSection(['gallery-management', 'content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
   loadProfiles();
+  loadGallery();
   loadSubscribers();
   loadSiteContent();
 }
@@ -351,6 +361,10 @@ logoutButton.addEventListener('click', async () => {
     loginPanel.hidden = false;
     profiles = [];
     adminList.replaceChildren();
+    galleryImages = [];
+    galleryAdminList.replaceChildren();
+    galleryUploadForm.reset();
+    galleryAdminError.textContent = '';
     subscribers = [];
     subscriberList.replaceChildren();
     subscriberCount.textContent = 'Sign in to load subscribers.';
@@ -361,6 +375,136 @@ logoutButton.addEventListener('click', async () => {
 document.querySelector('#new-profile').addEventListener('click', () => openForm());
 document.querySelector('#cancel-profile').addEventListener('click', closeForm);
 document.querySelector('#refresh-subscribers').addEventListener('click', loadSubscribers);
+
+galleryPhotoInput.addEventListener('change', () => {
+  galleryPhotoTitle.textContent = galleryPhotoInput.files?.[0]?.name || 'Browse or drag an image here';
+});
+
+galleryPhotoDropzone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  galleryPhotoDropzone.classList.add('is-dragging');
+});
+
+galleryPhotoDropzone.addEventListener('dragleave', (event) => {
+  if (!galleryPhotoDropzone.contains(event.relatedTarget)) {
+    galleryPhotoDropzone.classList.remove('is-dragging');
+  }
+});
+
+galleryPhotoDropzone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  galleryPhotoDropzone.classList.remove('is-dragging');
+  const [file] = event.dataTransfer?.files || [];
+  if (!file) return;
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  galleryPhotoInput.files = transfer.files;
+  galleryPhotoTitle.textContent = file.name;
+});
+
+galleryUploadForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  galleryAdminError.textContent = '';
+  const file = galleryPhotoInput.files?.[0];
+  if (!file) {
+    galleryAdminError.textContent = 'Choose an image to add.';
+    return;
+  }
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 4_000_000) {
+    galleryAdminError.textContent = 'Choose a JPEG, PNG or WebP image under 4 MB.';
+    return;
+  }
+  addGalleryPhotoButton.disabled = true;
+  addGalleryPhotoButton.textContent = 'Uploading...';
+  try {
+    const result = await api('/api/gallery', {
+      method: 'POST',
+      headers: {
+        'Content-Type': file.type,
+        'X-Gallery-Alt': encodeURIComponent(galleryAltInput.value.trim()),
+      },
+      body: file,
+    });
+    galleryImages = result.images;
+    renderGalleryImages();
+    galleryUploadForm.reset();
+    galleryPhotoTitle.textContent = 'Browse or drag an image here';
+    showToast('Photo added to the gallery.');
+  } catch (error) {
+    galleryAdminError.textContent = error.message;
+  } finally {
+    addGalleryPhotoButton.disabled = false;
+    addGalleryPhotoButton.innerHTML = 'Add to gallery <span aria-hidden="true">+</span>';
+  }
+});
+
+async function loadGallery() {
+  galleryAdminError.textContent = '';
+  try {
+    const result = await api('/api/gallery');
+    galleryImages = result.images;
+    renderGalleryImages();
+  } catch (error) {
+    galleryAdminError.textContent = error.message;
+    galleryAdminList.replaceChildren();
+  }
+}
+
+function renderGalleryImages() {
+  galleryAdminList.replaceChildren();
+  if (!galleryImages.length) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = 'No photos have been added from the dashboard yet.';
+    galleryAdminList.append(empty);
+    return;
+  }
+  [...galleryImages].reverse().forEach((image) => {
+    const row = document.createElement('article');
+    row.className = 'admin-profile-row gallery-admin-row';
+    const thumbnail = document.createElement('img');
+    thumbnail.src = image.url;
+    thumbnail.alt = '';
+    thumbnail.loading = 'lazy';
+    const description = document.createElement('div');
+    description.className = 'admin-profile-details';
+    const alt = document.createElement('p');
+    alt.textContent = image.alt;
+    const date = document.createElement('p');
+    date.textContent = new Date(image.createdAt).toLocaleDateString();
+    description.append(alt, date);
+    const actions = document.createElement('div');
+    actions.className = 'admin-profile-actions';
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Delete';
+    remove.setAttribute('aria-label', `Delete gallery photo: ${image.alt}`);
+    remove.addEventListener('click', () => deleteGalleryImage(image));
+    actions.append(remove);
+    row.append(thumbnail, description, actions);
+    galleryAdminList.append(row);
+  });
+}
+
+function deleteGalleryImage(image) {
+  requestConfirmation({
+    title: 'Remove this gallery photo?',
+    message: `Remove this photo from the public gallery?`,
+    confirmLabel: 'Remove photo',
+    danger: true,
+    run: async () => {
+      galleryAdminError.textContent = '';
+      try {
+        const result = await api(`/api/gallery?id=${encodeURIComponent(image.id)}`, { method: 'DELETE' });
+        galleryImages = result.images;
+        renderGalleryImages();
+        showToast('Photo removed from the gallery.');
+      } catch (error) {
+        galleryAdminError.textContent = error.message;
+      }
+    },
+  });
+}
 
 newsletterCampaignForm.addEventListener('submit', (event) => {
   event.preventDefault();

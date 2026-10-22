@@ -24,6 +24,7 @@
   </header>
   <nav class="admin-section-nav" id="admin-section-nav" aria-label="Admin sections" hidden>
     <a href="#team-management" data-admin-section="team-management" aria-current="page">Manage team</a>
+    <a href="#gallery-management" data-admin-section="gallery-management">Photo gallery</a>
     <a href="#content-management" data-admin-section="content-management">Website content</a>
     <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
   </nav>
@@ -64,6 +65,34 @@
         </div>
         <p class="admin-error" id="dashboard-error" role="alert"></p>
         <div class="admin-list" id="admin-list" aria-live="polite"></div>
+      </section>
+
+      <section class="admin-panel" id="gallery-management" aria-labelledby="gallery-management-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <p class="admin-dialog-kicker">COMMUNITY MOMENTS</p>
+            <h2 id="gallery-management-title">Photo gallery</h2>
+            <p class="admin-lede">Add photos to the public Gallery page. Images must be JPEG, PNG or WebP and no larger than 4 MB.</p>
+          </div>
+        </div>
+        <form class="gallery-upload-form" id="gallery-upload-form">
+          <div>
+            <label class="gallery-photo-label" for="gallery-photo">Choose an image</label>
+            <div class="gallery-photo-dropzone" id="gallery-photo-dropzone">
+              <input class="admin-photo-input" id="gallery-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="gallery-photo-guidance" required>
+              <span class="admin-upload-icon" aria-hidden="true">↑</span>
+              <span class="admin-upload-title" id="gallery-photo-title">Browse or drag an image here</span>
+              <span class="admin-upload-guidance" id="gallery-photo-guidance">JPEG, PNG or WebP · up to 4 MB</span>
+            </div>
+          </div>
+          <label for="gallery-alt">Image description
+            <input id="gallery-alt" name="alt" maxlength="200" placeholder="Describe what is happening in the photo" required>
+          </label>
+          <button class="admin-button" id="add-gallery-photo" type="submit">Add to gallery <span aria-hidden="true">+</span></button>
+        </form>
+        <p class="admin-lede gallery-upload-guidance">JPEG, PNG or WebP · up to 4 MB. A short description helps visitors using screen readers.</p>
+        <p class="admin-error" id="gallery-admin-error" role="alert"></p>
+        <div class="admin-list gallery-admin-list" id="gallery-admin-list" aria-live="polite"></div>
       </section>
 
       <section class="admin-panel newsletter-admin" id="newsletter-management" aria-labelledby="newsletter-admin-title" hidden>
