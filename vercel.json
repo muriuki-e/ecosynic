@@ -6,6 +6,7 @@
     { "source": "/", "destination": "/home", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/api/article-image", "destination": "/api/articles?image=1" },
     { "source": "/home", "destination": "/index" }
   ]
 }

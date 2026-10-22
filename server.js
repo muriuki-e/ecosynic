@@ -439,7 +439,7 @@ async function handleRequest(request, response) {
     return;
   }
   if (url.pathname === '/api/articles') {
-    await handleArticles(request, response);
+    await (url.searchParams.get('image') === '1' ? handleArticleImage : handleArticles)(request, response);
     return;
   }
   if (url.pathname === '/api/article-image') {

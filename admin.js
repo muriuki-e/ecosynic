@@ -637,7 +637,7 @@ function selectArticleImage(file) {
 
 function discardUploadedArticleImage(image) {
   if (!image?.path || articles.some((article) => article.imagePath === image.path)) return;
-  api(`/api/article-image?path=${encodeURIComponent(image.path)}`, { method: 'DELETE' })
+  api(`/api/articles?image=1&path=${encodeURIComponent(image.path)}`, { method: 'DELETE' })
     .catch((error) => {
       articleAdminError.textContent = `Could not remove an unused uploaded image: ${error.message}`;
     });
@@ -662,7 +662,7 @@ articleForm.addEventListener('submit', async (event) => {
   saveArticleButton.textContent = isEditing ? 'Saving...' : 'Publishing...';
   try {
     if (selectedImage && !articleImage) {
-      articleImage = await api('/api/article-image', {
+      articleImage = await api('/api/articles?image=1', {
         method: 'POST',
         headers: { 'Content-Type': selectedImage.type },
         body: selectedImage,
