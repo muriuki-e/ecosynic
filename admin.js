@@ -9,6 +9,8 @@ const contentPageSelect = document.querySelector('#content-page');
 const contentSearch = document.querySelector('#content-search');
 const contentFieldCount = document.querySelector('#content-field-count');
 const contentEditorFields = document.querySelector('#content-editor-fields');
+const contentImageList = document.querySelector('#content-image-list');
+const contentImageEmpty = document.querySelector('#content-image-empty');
 const contentAdminError = document.querySelector('#content-admin-error');
 const saveSiteContentButton = document.querySelector('#save-site-content');
 const addContentSectionButton = document.querySelector('#add-content-section');
@@ -91,6 +93,7 @@ let toastTimer = null;
 let siteContent = { overrides: {}, sections: {} };
 let contentFieldsByPage = {};
 let contentDrafts = {};
+let contentImageTargets = {};
 let selectedContentPage = '';
 let contentPageLoadSequence = 0;
 
@@ -162,12 +165,14 @@ async function loadSiteContent() {
     siteContent = await api('/api/content');
     siteContent.overrides ||= {};
     siteContent.sections ||= {};
+    siteContent.images ||= {};
     contentPageSelect.replaceChildren();
     contentFieldsByPage = {};
     contentDrafts = {};
     window.EcosynicContent.pages.forEach((page) => {
       siteContent.overrides[page.id] ||= {};
       siteContent.sections[page.id] ||= [];
+      siteContent.images[page.id] ||= {};
       const option = document.createElement('option');
       option.value = page.id;
       option.textContent = page.label;
@@ -205,14 +210,122 @@ async function loadContentPage(pageId) {
         label: `${node.parentElement.tagName.toLowerCase()}${headingText ? ` · ${headingText}` : ''}`,
       };
     });
+    contentImageTargets[pageId] = pageId === 'gallery' ? [] : collectContentImageTargets(main, pageId);
     contentPageSelect.value = pageId;
     selectedContentPage = pageId;
     renderContentFields();
+    renderContentImages();
     renderAddedContentSections();
   } catch (error) {
     contentFieldCount.textContent = '';
     contentAdminError.textContent = error.message;
   }
+}
+
+function contentImageKey(element, main) {
+  const path = [];
+  for (let current = element; current !== main; current = current.parentNode) {
+    if (!current.parentNode) return '';
+    path.unshift(Array.prototype.indexOf.call(current.parentNode.childNodes, current));
+  }
+  return `image:${path.join('.')}`;
+}
+
+function collectContentImageTargets(main, pageId) {
+  const targets = [...main.querySelectorAll('img')]
+    .filter((element) => !element.closest('.impact-gallery, .photo-gallery-rows'))
+    .map((element) => ({
+    key: contentImageKey(element, main),
+    element,
+    alt: element.alt,
+    url: element.getAttribute('src')?.startsWith('/') ? element.getAttribute('src') : `/${element.getAttribute('src') || ''}`,
+    label: element.closest('figure')?.querySelector('figcaption')?.textContent.trim() || `Page photo ${element.alt || ''}`.trim(),
+    }));
+  const backgroundSelectors = pageId === 'index'
+    ? [
+      ['technology', '.technology-image', 'Climate technology', 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1400&q=85'],
+      ['initiative-farm', '.image-farm', 'Smart agriculture pathway', 'https://images.unsplash.com/photo-1499529112087-3cb3b73cec95?auto=format&fit=crop&w=900&q=80'],
+      ['initiative-data', '.image-data', 'Climate technology pathway', 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=900&q=80'],
+      ['initiative-nature', '.image-nature', 'Ecosystem restoration pathway', 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80'],
+      ['knowledge', '.knowledge-image', 'Knowledge hub', 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2200&q=85'],
+    ]
+    : ['climate-resilience', 'ecosystem-restoration', 'smart-agriculture', 'climate-technology', 'green-livelihoods', 'community-leadership'].includes(pageId)
+      ? [['pathway-hero', '.pathway-hero', 'Page hero', ({
+        'climate-resilience': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=2200&q=85',
+        'ecosystem-restoration': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2200&q=85',
+        'smart-agriculture': 'https://images.unsplash.com/photo-1499529112087-3cb3b73cec95?auto=format&fit=crop&w=2200&q=85',
+        'climate-technology': 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=2200&q=85',
+        'green-livelihoods': 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=2200&q=85',
+        'community-leadership': 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=2200&q=85',
+      })[pageId]]]
+      : [];
+  backgroundSelectors.forEach(([key, selector, label, url]) => {
+    const element = main.querySelector(selector);
+    if (element) targets.push({ key: `background:${key}`, element, alt: element.getAttribute('aria-label') || '', label, url, background: true });
+  });
+  return targets;
+}
+
+function renderContentImages() {
+  const targets = contentImageTargets[selectedContentPage] || [];
+  const pageId = selectedContentPage;
+  contentImageList.replaceChildren();
+  contentImageEmpty.hidden = targets.length > 0;
+  contentImageEmpty.textContent = selectedContentPage === 'gallery'
+    ? 'Gallery images are managed in Gallery Management.'
+    : 'No editable images were found on this page.';
+  targets.forEach((target) => {
+    const override = siteContent.images[pageId][target.key] || {};
+    const card = document.createElement('article');
+    card.className = 'content-image-card';
+    const preview = document.createElement('img');
+    preview.src = override.url || target.url || '';
+    preview.alt = '';
+    const heading = document.createElement('h4');
+    heading.textContent = target.label;
+    const uploadLabel = document.createElement('label');
+    uploadLabel.textContent = 'Replace image (JPEG, PNG or WebP, up to 4 MB)';
+    const upload = document.createElement('input');
+    upload.type = 'file';
+    upload.accept = 'image/jpeg,image/png,image/webp';
+    upload.addEventListener('change', async () => {
+      const [file] = upload.files || [];
+      if (!file) return;
+      try {
+        const result = await api('/api/content-image', { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
+        siteContent.images[pageId][target.key] = { url: result.url, alt: altInput.value };
+        preview.src = result.url;
+        reset.hidden = false;
+      } catch (error) {
+        contentAdminError.textContent = error.message;
+      }
+    });
+    uploadLabel.append(upload);
+    const altLabel = document.createElement('label');
+    altLabel.textContent = 'Alternative text';
+    const altInput = document.createElement('input');
+    altInput.maxLength = 200;
+    altInput.value = override.alt ?? target.alt;
+    altInput.addEventListener('input', () => {
+      const current = siteContent.images[pageId][target.key] || { url: target.url };
+      siteContent.images[pageId][target.key] = { ...current, alt: altInput.value };
+      reset.hidden = false;
+    });
+    altLabel.append(altInput);
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'admin-button-secondary';
+    reset.textContent = 'Use original image';
+    reset.hidden = !override.url && override.alt === undefined;
+    reset.addEventListener('click', () => {
+      delete siteContent.images[pageId][target.key];
+      preview.src = target.url || '';
+      altInput.value = target.alt;
+      reset.hidden = true;
+    });
+    card.append(preview, heading, uploadLabel, altLabel, reset);
+    contentImageList.append(card);
+  });
 }
 
 function renderContentFields() {
@@ -299,6 +412,52 @@ function renderAddedContentSections() {
       section.body = body.value;
     });
     bodyLabel.append(body);
+    const imageLabel = document.createElement('label');
+    imageLabel.textContent = 'Optional section image';
+    const imageInput = document.createElement('input');
+    imageInput.type = 'file';
+    imageInput.accept = 'image/jpeg,image/png,image/webp';
+    const imagePreview = document.createElement('img');
+    imagePreview.className = 'content-section-image-preview';
+    imagePreview.alt = '';
+    imagePreview.hidden = !section.imageUrl;
+    if (section.imageUrl) imagePreview.src = section.imageUrl;
+    imageInput.addEventListener('change', async () => {
+      const [file] = imageInput.files || [];
+      if (!file) return;
+      try {
+        const result = await api('/api/content-image', { method: 'POST', headers: { 'Content-Type': file.type }, body: file });
+        section.imageUrl = result.url;
+        imageAlt.required = true;
+        removeImage.hidden = false;
+        imagePreview.src = result.url;
+        imagePreview.hidden = false;
+      } catch (error) {
+        contentAdminError.textContent = error.message;
+      }
+    });
+    const altLabel = document.createElement('label');
+    altLabel.textContent = 'Image alternative text';
+    const imageAlt = document.createElement('input');
+    imageAlt.maxLength = 200;
+    imageAlt.value = section.imageAlt || '';
+    imageAlt.addEventListener('input', () => { section.imageAlt = imageAlt.value; });
+    const removeImage = document.createElement('button');
+    removeImage.type = 'button';
+    removeImage.className = 'admin-button-secondary';
+    removeImage.textContent = 'Remove image';
+    removeImage.hidden = !section.imageUrl;
+    removeImage.addEventListener('click', () => {
+      delete section.imageUrl;
+      delete section.imageAlt;
+      imagePreview.removeAttribute('src');
+      imagePreview.hidden = true;
+      imageAlt.value = '';
+      removeImage.hidden = true;
+    });
+    imageAlt.required = Boolean(section.imageUrl);
+    imageInput.addEventListener('change', () => { imageAlt.required = Boolean(imageInput.files?.length || section.imageUrl); });
+    imageLabel.append(imageInput, imagePreview, altLabel, imageAlt, removeImage);
     const actions = document.createElement('div');
     actions.className = 'content-added-actions';
     const up = document.createElement('button');
@@ -322,7 +481,7 @@ function renderAddedContentSections() {
       renderAddedContentSections();
     });
     actions.append(up, down, remove);
-    card.append(titleLabel, bodyLabel, actions);
+    card.append(titleLabel, bodyLabel, imageLabel, actions);
     contentAddedList.append(card);
   });
 }

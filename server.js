@@ -3,7 +3,7 @@ const path = require('node:path');
 const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
-const { handleAdmin, handleArticles, handleArticleImage, handleContent, handleGallery, handleGalleryPhoto, handleTeam, handleTeamPhoto } = require('./lib/team-api');
+const { handleAdmin, handleArticles, handleArticleImage, handleContent, handleContentImage, handleGallery, handleGalleryPhoto, handleTeam, handleTeamPhoto } = require('./lib/team-api');
 const { handleNewsletter, unsubscribe } = require('./lib/newsletter-api');
 
 const ROOT = __dirname;
@@ -438,6 +438,10 @@ async function handleRequest(request, response) {
   }
   if (url.pathname === '/api/content') {
     await handleContent(request, response);
+    return;
+  }
+  if (url.pathname === '/api/content-image') {
+    await handleContentImage(request, response);
     return;
   }
   if (url.pathname === '/api/articles') {

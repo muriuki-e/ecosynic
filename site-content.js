@@ -30,6 +30,28 @@
     return path.join('.');
   }
 
+  function backgroundTargets(main, pageId) {
+    const targets = {
+      index: [
+        ['technology', '.technology-image', 'Aerial view of cultivated land and natural terrain'],
+        ['initiative-farm', '.image-farm', 'Smart agriculture pathway'],
+        ['initiative-data', '.image-data', 'Climate technology pathway'],
+        ['initiative-nature', '.image-nature', 'Ecosystem restoration pathway'],
+        ['knowledge', '.knowledge-image', 'Sunlight falling over a lush green forest'],
+      ],
+      'climate-resilience': [['pathway-hero', '.pathway-hero', 'Climate resilience landscape']],
+      'ecosystem-restoration': [['pathway-hero', '.pathway-hero', 'Ecosystem restoration landscape']],
+      'smart-agriculture': [['pathway-hero', '.pathway-hero', 'Smart agriculture landscape']],
+      'climate-technology': [['pathway-hero', '.pathway-hero', 'Climate technology landscape']],
+      'green-livelihoods': [['pathway-hero', '.pathway-hero', 'Green livelihoods landscape']],
+      'community-leadership': [['pathway-hero', '.pathway-hero', 'Community leadership landscape']],
+    };
+    return (targets[pageId] || []).map(([key, selector, alt]) => {
+      const element = main?.querySelector(selector);
+      return element ? { key: `background:${key}`, element, alt } : null;
+    }).filter(Boolean);
+  }
+
   function collectTextNodes(main) {
     if (!main) return [];
     const document = main.ownerDocument;
@@ -119,6 +141,28 @@
         const suffix = original.match(/\s*$/)[0];
         node.nodeValue = `${prefix}${overrides[key]}${suffix}`;
       });
+      if (pageId !== 'gallery') {
+        const backgrounds = backgroundTargets(main, pageId);
+        Object.entries(content.images?.[pageId] || {}).forEach(([key, image]) => {
+          if (key.startsWith('background:')) {
+            const target = backgrounds.find((entry) => entry.key === key)?.element;
+            if (!target || typeof image?.url !== 'string') return;
+            target.style.backgroundImage = `url("${image.url.replace(/["\\\n\r]/g, '')}")`;
+            if (image.alt && target.hasAttribute('aria-label')) target.setAttribute('aria-label', image.alt);
+            return;
+          }
+          const [type, ...pathParts] = key.split(':');
+          if (type !== 'image' || !main || typeof image?.url !== 'string') return;
+          let target = main;
+          for (const index of pathParts.join(':').split('.').map(Number)) {
+            target = target.childNodes[index];
+            if (!target) return;
+          }
+          if (!(target instanceof HTMLImageElement) || target.closest('.impact-gallery, .photo-gallery-rows')) return;
+          target.src = image.url;
+          target.alt = typeof image.alt === 'string' ? image.alt : '';
+        });
+      }
       const addedSections = content.sections?.[pageId] || [];
       addedSections.forEach((section) => {
         const wrapper = document.createElement('section');
@@ -134,6 +178,14 @@
         body.className = 'site-added-content-copy';
         body.textContent = section.body;
         inner.append(eyebrow, heading, body);
+        if (section.imageUrl) {
+          const image = document.createElement('img');
+          image.className = 'site-added-content-image';
+          image.src = section.imageUrl;
+          image.alt = section.imageAlt;
+          image.loading = 'lazy';
+          inner.append(image);
+        }
         wrapper.append(inner);
         main?.append(wrapper);
       });

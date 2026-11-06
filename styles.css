@@ -5112,6 +5112,60 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
   border-color: #71884a;
   box-shadow: 0 0 0 3px rgba(113, 136, 74, .13);
 }
+.content-image-editor {
+  margin-top: 28px;
+}
+.content-image-editor-heading h3 {
+  margin: 0 0 5px;
+  color: #344b36;
+  font-size: 17px;
+}
+.content-image-editor-heading .admin-lede {
+  margin: 0 0 16px;
+}
+.content-image-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+.content-image-card {
+  min-width: 0;
+  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid #dfe5d8;
+  border-radius: 8px;
+  background: #fff;
+}
+.content-image-card img,
+.content-section-image-preview {
+  width: 100%;
+  max-height: 180px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #eef0ea;
+}
+.content-image-card h4 {
+  margin: 0;
+  color: #344137;
+  font-size: 12px;
+}
+.content-image-card label,
+.content-added-card label {
+  display: grid;
+  gap: 6px;
+  color: #44503f;
+  font-size: 11px;
+  font-weight: 700;
+}
+.content-image-card input:not([type="file"]),
+.content-image-card input[type="file"],
+.content-added-card input[type="file"] {
+  width: 100%;
+  font: inherit;
+  font-size: 11px;
+}
 .content-added-editor {
   margin-top: 34px;
   padding: 24px;
@@ -5178,6 +5232,13 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
   color: var(--muted, #697166);
   line-height: 1.8;
   white-space: pre-line;
+}
+.site-added-content-image {
+  width: 100%;
+  max-height: 480px;
+  margin-top: 24px;
+  display: block;
+  object-fit: cover;
 }
 .site-long-text-copy {
   max-height: var(--site-long-text-max-height);
@@ -5263,6 +5324,14 @@ html[data-theme="dark"] .content-added-card textarea {
   border-color: #485443;
   color: #edf1e7;
   background: #141a14;
+}
+html[data-theme="dark"] .content-image-card {
+  border-color: #485443;
+  background: #1b231a;
+}
+html[data-theme="dark"] .content-image-card h4,
+html[data-theme="dark"] .content-image-editor-heading h3 {
+  color: #dce8cf;
 }
 html[data-theme="dark"] .site-long-text-toggle {
   color: #d8e7c7;
