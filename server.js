@@ -30,6 +30,7 @@ const regions = {
 const publicFiles = new Set([
   'index.html',
   'staff.html',
+  'team-profile.html',
   'gallery.html',
   'articles.html',
   'admin.html',
@@ -69,6 +70,7 @@ const publicFiles = new Set([
   'admin.js',
   'site-content.js',
   'team.js',
+  'team-profile.js',
   'newsletter-unsubscribe.js',
   ...fs.readdirSync(path.join(ROOT, 'images'))
     .filter((file) => /\.(?:jpe?g|png|webp)$/i.test(file))

@@ -34,8 +34,8 @@ const profileCount = document.querySelector('#profile-count');
 const storageNotice = document.querySelector('#storage-notice');
 const profileName = document.querySelector('#profile-name');
 const profileRole = document.querySelector('#profile-role');
-const profilePhone = document.querySelector('#profile-phone');
-const profileEmail = document.querySelector('#profile-email');
+const profileCvSections = document.querySelector('#profile-cv-sections');
+const addProfileCvSectionButton = document.querySelector('#add-profile-cv-section');
 const saveButton = document.querySelector('#save-profile');
 const subscriberCount = document.querySelector('#subscriber-count');
 const subscriberList = document.querySelector('#subscriber-list');
@@ -852,7 +852,7 @@ newsletterCampaignForm.addEventListener('submit', (event) => {
   newsletterCampaignStatus.textContent = '';
   requestConfirmation({
     title: 'Send this newsletter?',
-    message: `Send “${campaign.subject}” to all ${subscribers.filter((subscriber) => subscriber.status === 'active').length} active subscribers? Each person receives a separate email.`,
+    message: `Send “${campaign.subject}” to all ${subscribers.filter((subscriber) => subscriber.status === 'active').length} active subscribers and publish it to the Ecosynic Africa Facebook Page?`,
     confirmLabel: 'Send newsletter',
     run: () => sendNewsletter(campaign),
   });
@@ -903,7 +903,7 @@ function renderSubscribers() {
 
 async function sendNewsletter(campaign) {
   sendNewsletterButton.disabled = true;
-  newsletterCampaignStatus.textContent = 'Sending newsletter emails...';
+  newsletterCampaignStatus.textContent = 'Sending emails and publishing to Facebook...';
   try {
     const result = await api('/api/newsletter?action=admin', {
       method: 'POST',
@@ -982,8 +982,10 @@ profileForm.addEventListener('submit', async (event) => {
   const payload = {
     name: profileName.value,
     role: profileRole.value,
-    phone: profilePhone.value,
-    email: profileEmail.value,
+    cvSections: [...profileCvSections.querySelectorAll('.profile-cv-section')].map((section) => ({
+      heading: section.querySelector('[name="cv-heading"]').value,
+      content: section.querySelector('[name="cv-content"]').value,
+    })),
     photoUrl: photo?.url || existing?.photoUrl || '',
     photoPath: photo?.path || existing?.photoPath || '',
   };
@@ -1054,9 +1056,7 @@ function renderProfiles() {
     name.textContent = profile.name;
     const role = document.createElement('p');
     role.textContent = profile.role;
-    const contact = document.createElement('p');
-    contact.textContent = [profile.email, profile.phone].filter(Boolean).join(' · ');
-    details.append(name, role, contact);
+    details.append(name, role);
     const actions = document.createElement('div');
     actions.className = 'admin-profile-actions';
     const edit = document.createElement('button');
@@ -1080,8 +1080,7 @@ function openForm(profile = null) {
   profileFormTitle.textContent = profile ? 'Edit team member' : 'Add team member';
   profileName.value = profile?.name || '';
   profileRole.value = profile?.role || '';
-  profilePhone.value = profile?.phone || '';
-  profileEmail.value = profile?.email || '';
+  renderProfileCvSections(profile?.cvSections || []);
   profileError.textContent = '';
   photoError.textContent = '';
   photoInput.value = '';
@@ -1099,6 +1098,7 @@ function closeForm() {
 
 function resetProfileForm() {
   profileForm.reset();
+  profileCvSections.replaceChildren();
   editingId = null;
   photo = null;
   photoUploadPending = false;
@@ -1108,6 +1108,55 @@ function resetProfileForm() {
   if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
   previewUrl = '';
 }
+
+function renderProfileCvSections(sections) {
+  profileCvSections.replaceChildren();
+  sections.forEach((section) => addProfileCvSection(section));
+}
+
+function addProfileCvSection(section = {}) {
+  if (profileCvSections.children.length >= 20) {
+    profileError.textContent = 'A team profile can have up to 20 CV sections.';
+    return;
+  }
+  profileError.textContent = '';
+
+  const fieldset = document.createElement('fieldset');
+  fieldset.className = 'profile-cv-section';
+
+  const legend = document.createElement('legend');
+  legend.textContent = 'CV section';
+
+  const headingLabel = document.createElement('label');
+  headingLabel.textContent = 'Header';
+  const headingInput = document.createElement('input');
+  headingInput.name = 'cv-heading';
+  headingInput.maxLength = 80;
+  headingInput.placeholder = 'e.g. Hobbies';
+  headingInput.value = section.heading || '';
+  headingLabel.append(headingInput);
+
+  const contentLabel = document.createElement('label');
+  contentLabel.textContent = 'Text';
+  const contentInput = document.createElement('textarea');
+  contentInput.name = 'cv-content';
+  contentInput.maxLength = 2000;
+  contentInput.rows = 4;
+  contentInput.placeholder = 'Write the details to display under this header.';
+  contentInput.value = section.content || '';
+  contentLabel.append(contentInput);
+
+  const removeButton = document.createElement('button');
+  removeButton.type = 'button';
+  removeButton.className = 'admin-button-secondary profile-cv-remove';
+  removeButton.textContent = 'Remove section';
+  removeButton.addEventListener('click', () => fieldset.remove());
+
+  fieldset.append(legend, headingLabel, contentLabel, removeButton);
+  profileCvSections.append(fieldset);
+}
+
+addProfileCvSectionButton.addEventListener('click', () => addProfileCvSection());
 
 function requestConfirmation({ title, message, confirmLabel, danger = false, run }) {
   pendingAction = run;

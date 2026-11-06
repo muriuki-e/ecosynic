@@ -25,23 +25,11 @@ async function loadTeam() {
       name.textContent = profile.name;
       const role = document.createElement('p');
       role.textContent = profile.role;
-      info.append(name, role);
-      if (profile.phone) {
-        const phone = document.createElement('a');
-        phone.className = 'staff-contact';
-        phone.href = `tel:${profile.phone.replace(/[^+\d]/g, '')}`;
-        phone.textContent = `CALL ${profile.phone}`;
-        phone.setAttribute('aria-label', `Call ${profile.name} at ${profile.phone}`);
-        info.append(phone);
-      }
-      if (profile.email) {
-        const email = document.createElement('a');
-        email.className = 'staff-contact';
-        email.href = `mailto:${profile.email}`;
-        email.textContent = `EMAIL ${profile.email}`;
-        email.setAttribute('aria-label', `Email ${profile.name} at ${profile.email}`);
-        info.append(email);
-      }
+      const detailsLink = document.createElement('a');
+      detailsLink.className = 'staff-profile-link';
+      detailsLink.href = `/team-profile?id=${encodeURIComponent(profile.id)}`;
+      detailsLink.textContent = 'View profile';
+      info.append(name, role, detailsLink);
       article.append(figure, info);
       teamList.append(article);
     });

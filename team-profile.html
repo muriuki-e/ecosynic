@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ed">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="description" content="Learn about a member of the Ecosynic Africa team.">
+  <link rel="canonical" href="https://ecosynic.or.ke/team-profile">
+  <title>Team Profile | Ecosynic Africa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+  <script src="team-profile.js" defer></script>
+</head>
+<body id="top" class="staff-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button>
+    <nav class="primary-nav" id="primary-nav" aria-label="Main navigation">
+      <a href="index.html#about">About</a>
+      <a href="index.html#work">Our work</a>
+      <a href="index.html#impact">Impact</a>
+      <a href="index.html#knowledge">Knowledge</a>
+      <a href="index.html#partners">Partners</a>
+      <a href="staff.html" aria-current="page">Our team</a>
+      <a class="nav-contact" href="index.html#contact">Get in touch <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="team-profile-main">
+    <a class="team-profile-back" href="/staff">← Back to our team</a>
+    <p class="team-profile-status" id="team-profile-status" role="status" aria-live="polite">Loading team profile...</p>
+    <article class="team-profile" id="team-profile" hidden>
+      <div class="team-profile-heading">
+        <img class="team-profile-photo" id="team-profile-photo" alt="">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-line"></span> OUR PEOPLE</p>
+          <h1 id="team-profile-name"></h1>
+          <p class="team-profile-role" id="team-profile-role"></p>
+        </div>
+      </div>
+      <section class="team-profile-cv" aria-labelledby="team-profile-cv-heading">
+        <p class="eyebrow"><span class="eyebrow-line"></span> PROFILE</p>
+        <h2 id="team-profile-cv-heading">About</h2>
+        <div id="team-profile-cv-sections"></div>
+      </section>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-top"><a class="brand footer-brand" href="index.html" aria-label="Ecosynic Africa home"><span class="brand-mark" aria-hidden="true">e</span><span class="brand-name">ecosynic<span>A F R I C A</span></span></a><p>Climate. Nature. Agriculture.<br>Technology. People.</p><a class="back-top" href="#top">BACK TO TOP <span aria-hidden="true">↑</span></a></div>
+    <div class="footer-bottom"><span>© <span id="year"></span> Ecosynic Africa</span><span>INNOVATION ROOTED IN PLACE. BUILT FOR WHAT'S NEXT.</span><a href="/staff">OUR TEAM</a></div>
+  </footer>
+</body>
+</html>

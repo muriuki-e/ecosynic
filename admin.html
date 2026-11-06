@@ -214,7 +214,7 @@
             <div class="newsletter-compose-icon" aria-hidden="true">✳</div>
             <p class="admin-dialog-kicker">A NOTE FROM ECOSYNIC</p>
             <h3>Compose a newsletter</h3>
-            <p class="newsletter-compose-lede">Your message goes separately to every active subscriber. Addresses stay private, and each email includes an unsubscribe link.</p>
+            <p class="newsletter-compose-lede">Your message goes separately to every active subscriber, and is also posted to the Ecosynic Africa Facebook Page. Addresses stay private, and each email includes an unsubscribe link.</p>
             <label for="campaign-subject">Subject
               <input id="campaign-subject" name="subject" maxlength="150" placeholder="A clear, welcoming subject" required>
             </label>
@@ -269,7 +269,7 @@
         <div>
           <p class="admin-dialog-kicker">TEAM DIRECTORY</p>
           <h2 id="profile-form-title">Add team member</h2>
-          <p class="admin-dialog-lede">Add their details and a profile photo.</p>
+          <p class="admin-dialog-lede">Add their details, a profile photo, and CV sections.</p>
         </div>
         <button class="admin-dialog-close" id="close-profile" type="button" aria-label="Close form">×</button>
       </div>
@@ -292,15 +292,18 @@
           <label for="profile-role">Role or title
             <input id="profile-role" name="role" maxlength="100" required>
           </label>
-          <label for="profile-phone">Phone
-            <input id="profile-phone" name="phone" type="tel" maxlength="40" autocomplete="tel">
-          </label>
-          <label for="profile-email">Email
-            <input id="profile-email" name="email" type="email" maxlength="254" autocomplete="email">
-          </label>
-          <p class="admin-lede">Provide at least one contact method: phone or email.</p>
         </div>
       </div>
+      <section class="profile-cv-editor" aria-labelledby="profile-cv-title">
+        <div class="profile-cv-editor-heading">
+          <div>
+            <h3 id="profile-cv-title">CV sections</h3>
+            <p class="admin-lede">Add a heading such as “Hobbies” and the information to show below it.</p>
+          </div>
+          <button class="admin-button-secondary" id="add-profile-cv-section" type="button">Add section <span aria-hidden="true">+</span></button>
+        </div>
+        <div id="profile-cv-sections"></div>
+      </section>
       <p class="admin-error" id="profile-error" role="alert"></p>
       <div class="admin-form-actions">
         <button class="admin-button" id="save-profile" type="submit">Save profile</button>

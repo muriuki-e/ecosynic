@@ -3134,20 +3134,26 @@ html[data-theme="dark"] .advisor-error {
   font-size: 12px;
   line-height: 1.5;
 }
-.staff-contact {
-  margin-top: 3px;
+.staff-profile-link {
+  margin-top: 7px;
+  padding: 8px 11px;
+  border: 1px solid var(--green);
+  border-radius: 3px;
   color: var(--green);
   font-size: 10px;
   font-weight: 700;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  text-decoration: none;
+  transition: color .18s, background .18s;
 }
-.staff-contact:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
+.staff-profile-link:hover,
+.staff-profile-link:focus-visible {
+  color: #fff;
+  background: var(--green);
 }
-html[data-theme="dark"] .staff-contact {
-  color: #c8e77b;
+.staff-profile-link:focus-visible,
+.team-profile-back:focus-visible {
+  outline: 2px solid #e3754e;
+  outline-offset: 3px;
 }
 .staff-status {
   margin: 0 0 18px;
@@ -3157,8 +3163,93 @@ html[data-theme="dark"] .staff-contact {
 .staff-status:empty {
   display: none;
 }
-.staff-member-info .staff-contact {
+.team-profile-main {
+  width: min(1040px, calc(100% - 48px));
+  min-height: 60vh;
+  margin: 0 auto;
+  padding-block: 36px 80px;
+}
+.team-profile-back {
   display: inline-block;
+  margin-bottom: 30px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.team-profile-status {
+  color: var(--muted);
+}
+.team-profile[hidden] {
+  display: none;
+}
+.team-profile-heading {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  padding-bottom: 38px;
+  border-bottom: 1px solid var(--line);
+}
+.team-profile-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+  object-position: center 35%;
+  background: var(--paper-deep);
+}
+.team-profile-heading h1 {
+  margin: 12px 0;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: clamp(34px, 5vw, 58px);
+  letter-spacing: -.045em;
+  line-height: 1.08;
+}
+.team-profile-role {
+  color: var(--muted);
+  font-size: 16px;
+}
+.team-profile-cv {
+  max-width: 760px;
+  padding-top: 38px;
+}
+.team-profile-cv > h2 {
+  margin: 8px 0 26px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 30px;
+}
+.team-profile-cv-section {
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.team-profile-cv-section h3 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 18px;
+}
+.team-profile-cv-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+@media (max-width: 680px) {
+  .team-profile-main {
+    width: calc(100% - 36px);
+    padding-block: 24px 56px;
+  }
+  .team-profile-heading {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .team-profile-photo {
+    max-height: 420px;
+  }
 }
 
 .admin-page {
@@ -3530,10 +3621,6 @@ html[data-theme="dark"] .staff-contact {
   .staff-member p {
     font-size: 11px;
   }
-  .staff-contact {
-    grid-column: 2;
-    font-size: 11px;
-  }
 }
 
 .admin-page {
@@ -3778,6 +3865,84 @@ html[data-theme="dark"] .staff-contact {
 .admin-fields input:focus {
   outline: 2px solid #637b50;
   outline-offset: 1px;
+}
+.profile-cv-editor {
+  margin-top: 24px;
+}
+.profile-cv-editor-heading {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.profile-cv-editor-heading h3 {
+  margin: 0 0 5px;
+  color: #344137;
+  font-size: 14px;
+}
+.profile-cv-editor-heading .admin-lede {
+  margin: 0;
+  font-size: 11px;
+}
+.profile-cv-section {
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  border: 1px solid #dfe3dc;
+  border-radius: 5px;
+}
+.profile-cv-section legend {
+  padding-inline: 5px;
+  color: #52644d;
+  font-size: 11px;
+  font-weight: 700;
+}
+.profile-cv-section label {
+  display: grid;
+  gap: 6px;
+  color: #344137;
+  font-size: 12px;
+  font-weight: 700;
+}
+.profile-cv-section label:nth-of-type(2) {
+  grid-column: 1 / -1;
+}
+.profile-cv-section input,
+.profile-cv-section textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px;
+  border: 1px solid #cbd2c8;
+  border-radius: 4px;
+  color: #20281d;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.profile-cv-section textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.profile-cv-remove {
+  grid-column: 2;
+  justify-self: end;
+}
+html[data-theme="dark"] .profile-cv-editor-heading h3,
+html[data-theme="dark"] .profile-cv-section label {
+  color: #d5ddce;
+}
+html[data-theme="dark"] .profile-cv-section {
+  border-color: #384336;
+}
+html[data-theme="dark"] .profile-cv-section input,
+html[data-theme="dark"] .profile-cv-section textarea {
+  border-color: #485443;
+  color: #edf1e8;
+  background: #141a14;
 }
 .admin-form-actions {
   justify-content: flex-end;
