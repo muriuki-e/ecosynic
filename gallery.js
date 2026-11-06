@@ -1,13 +1,14 @@
 (() => {
-  const section = document.querySelector('#gallery-uploaded');
-  const grid = document.querySelector('#gallery-uploaded-grid');
+  const [gallerySet, duplicateSet] = document.querySelectorAll('.photo-gallery-track .photo-gallery-set');
 
   async function loadGallery() {
+    if (!gallerySet || !duplicateSet) return;
+
     try {
       const response = await fetch('/api/gallery');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'The gallery is unavailable.');
-      if (!Array.isArray(result.images) || !result.images.length) return;
+      if (!Array.isArray(result.images)) return;
 
       result.images.forEach((image) => {
         if (!image || typeof image.url !== 'string' || typeof image.alt !== 'string') return;
@@ -17,9 +18,9 @@
         photo.alt = image.alt;
         photo.loading = 'lazy';
         figure.append(photo);
-        grid.append(figure);
+        gallerySet.append(figure);
+        duplicateSet.append(figure.cloneNode(true));
       });
-      section.hidden = grid.childElementCount === 0;
     } catch (error) {
       console.error('Could not load gallery photos:', error.message || error);
     }
