@@ -3096,18 +3096,13 @@ html[data-theme="dark"] .advisor-error {
 }
 .staff-photo {
   position: relative;
-  aspect-ratio: 4 / 3;
   margin: 0;
-  overflow: hidden;
   background: var(--paper-deep);
 }
 .staff-photo img {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
-  object-fit: contain;
-  object-position: center top;
-  background: var(--paper-deep);
 }
 .staff-photo figcaption {
   position: absolute;
@@ -3201,10 +3196,8 @@ html[data-theme="dark"] .advisor-error {
 }
 .team-profile-photo {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: auto;
   display: block;
-  object-fit: contain;
-  background: var(--paper-deep);
 }
 .team-profile-heading h1 {
   margin: 12px 0;
@@ -3253,9 +3246,6 @@ html[data-theme="dark"] .advisor-error {
   .team-profile-heading {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-  .team-profile-photo {
-    max-height: 420px;
   }
 }
 
@@ -3615,9 +3605,6 @@ html[data-theme="dark"] .advisor-error {
   .staff-list {
     grid-template-columns: 1fr;
     gap: 18px;
-  }
-  .staff-photo {
-    aspect-ratio: 4 / 3;
   }
   .staff-member-info {
     min-height: 116px;
