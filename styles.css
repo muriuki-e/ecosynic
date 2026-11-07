@@ -3073,7 +3073,7 @@ html[data-theme="dark"] .advisor-error {
 }
 .staff-list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 @media (max-width: 760px) {
@@ -3096,7 +3096,7 @@ html[data-theme="dark"] .advisor-error {
 }
 .staff-photo {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   margin: 0;
   overflow: hidden;
   background: var(--paper-deep);
@@ -3201,7 +3201,7 @@ html[data-theme="dark"] .advisor-error {
 }
 .team-profile-photo {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   display: block;
   object-fit: contain;
   background: var(--paper-deep);
@@ -3617,7 +3617,7 @@ html[data-theme="dark"] .advisor-error {
     gap: 18px;
   }
   .staff-photo {
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
   }
   .staff-member-info {
     min-height: 116px;
