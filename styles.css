@@ -3052,7 +3052,8 @@ html[data-theme="dark"] .advisor-error {
   font-size: 14px;
 }
 .staff-directory {
-  max-width: 1040px;
+  width: calc(100% - 64px);
+  max-width: none;
   padding-block: 76px 105px;
 }
 .staff-directory-heading {
@@ -3071,8 +3072,18 @@ html[data-theme="dark"] .advisor-error {
 }
 .staff-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 300px));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
+}
+@media (max-width: 950px) {
+  .staff-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .staff-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .staff-member {
   min-width: 0;
@@ -3080,12 +3091,12 @@ html[data-theme="dark"] .advisor-error {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--paper);
-  box-shadow: 0 8px 22px rgba(31, 46, 34, .06);
+  box-shadow: 0 8px 24px rgba(31, 73, 43, .12), 0 0 14px rgba(139, 173, 79, .08);
   transition: transform .2s, box-shadow .2s;
 }
 .staff-member:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 30px rgba(31, 46, 34, .12);
+  box-shadow: 0 14px 32px rgba(31, 73, 43, .18), 0 0 20px rgba(139, 173, 79, .16);
 }
 .staff-photo {
   position: relative;
@@ -3594,6 +3605,7 @@ html[data-theme="dark"] .advisor-error {
     font-size: 12px;
   }
   .staff-directory {
+    width: calc(100% - 40px);
     padding-block: 58px 78px;
   }
   .staff-directory-heading {
