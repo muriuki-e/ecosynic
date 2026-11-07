@@ -243,20 +243,29 @@
           <label for="content-page">Choose a page
             <select id="content-page"></select>
           </label>
-          <label for="content-search">Find text
-            <input id="content-search" type="search" placeholder="Filter headings and text">
-          </label>
-          <p class="admin-lede" id="content-field-count">Loading page text...</p>
         </div>
-        <div class="content-editor-fields" id="content-editor-fields" aria-live="polite"></div>
-        <section class="content-image-editor" aria-labelledby="content-image-title">
+        <div class="content-category-tabs" role="tablist" aria-label="Website content categories">
+          <button class="content-category-tab is-active" id="content-text-tab" type="button" role="tab" aria-selected="true" aria-controls="content-text-panel" data-content-category="text">Text content</button>
+          <button class="content-category-tab" id="content-images-tab" type="button" role="tab" aria-selected="false" aria-controls="content-images-panel" data-content-category="images" tabindex="-1">Page images</button>
+          <button class="content-category-tab" id="content-sections-tab" type="button" role="tab" aria-selected="false" aria-controls="content-sections-panel" data-content-category="sections" tabindex="-1">Additional sections</button>
+        </div>
+        <section class="content-category-panel" id="content-text-panel" role="tabpanel" aria-labelledby="content-text-tab">
+          <div class="content-editor-toolbar content-search-toolbar">
+            <label for="content-search">Find text
+              <input id="content-search" type="search" placeholder="Search by keyword (typos and partial words are OK)">
+            </label>
+            <p class="admin-lede" id="content-field-count">Loading page text...</p>
+          </div>
+          <div class="content-editor-fields" id="content-editor-fields" aria-live="polite"></div>
+        </section>
+        <section class="content-image-editor content-category-panel" id="content-images-panel" role="tabpanel" aria-labelledby="content-images-tab" hidden>
           <div class="content-image-editor-heading">
             <div><h3 id="content-image-title">Page images</h3><p class="admin-lede">Upload a replacement photo and update its alternative text.</p></div>
           </div>
           <p class="admin-empty" id="content-image-empty" hidden></p>
           <div class="content-image-list" id="content-image-list"></div>
         </section>
-        <section class="content-added-editor" aria-labelledby="content-added-title">
+        <section class="content-added-editor content-category-panel" id="content-sections-panel" role="tabpanel" aria-labelledby="content-sections-tab" hidden>
           <div class="admin-toolbar">
             <div>
               <h3 id="content-added-title">Additional sections</h3>

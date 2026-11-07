@@ -4996,6 +4996,50 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
   border-radius: 12px;
   background: linear-gradient(135deg, #f4f7ed, #fff 72%);
 }
+.content-editor-toolbar.content-search-toolbar {
+  margin: 0 0 20px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.content-category-tabs {
+  margin: 0 0 20px;
+  padding: 5px;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  border: 1px solid #dfe5d8;
+  border-radius: 9px;
+  background: #f1f4ec;
+}
+.content-category-tab {
+  min-height: 42px;
+  padding: 0 16px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  color: #53604e;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .18s, background .18s, box-shadow .18s;
+}
+.content-category-tab:hover {
+  color: #263b2b;
+  background: rgba(255, 255, 255, .65);
+}
+.content-category-tab.is-active {
+  color: #fff;
+  background: #344b36;
+  box-shadow: 0 3px 9px rgba(31, 46, 34, .15);
+}
+.content-category-tab:focus-visible {
+  outline: 2px solid #e3754e;
+  outline-offset: 2px;
+}
+.content-category-panel[hidden] {
+  display: none;
+}
 .content-editor-toolbar label,
 .content-editor-field,
 .content-added-card label {
@@ -5333,6 +5377,21 @@ html[data-theme="dark"] .content-image-card h4,
 html[data-theme="dark"] .content-image-editor-heading h3 {
   color: #dce8cf;
 }
+html[data-theme="dark"] .content-category-tabs {
+  border-color: #384336;
+  background: #20291f;
+}
+html[data-theme="dark"] .content-category-tab {
+  color: #c3cbbd;
+}
+html[data-theme="dark"] .content-category-tab:hover {
+  color: #edf1e7;
+  background: rgba(72, 84, 67, .4);
+}
+html[data-theme="dark"] .content-category-tab.is-active {
+  color: #eff4e8;
+  background: #536b49;
+}
 html[data-theme="dark"] .site-long-text-toggle {
   color: #d8e7c7;
   text-decoration-color: rgba(216, 231, 199, .5);
@@ -5341,6 +5400,9 @@ html[data-theme="dark"] .site-long-text-toggle {
   .content-editor-toolbar {
     grid-template-columns: 1fr;
     padding: 16px;
+  }
+  .content-editor-toolbar.content-search-toolbar {
+    grid-template-columns: 1fr;
   }
   .content-editor-toolbar .admin-lede {
     margin: 0;

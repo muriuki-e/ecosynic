@@ -7,6 +7,7 @@ const themeToggle = document.querySelector('#admin-theme-toggle');
 const sectionNav = document.querySelector('#admin-section-nav');
 const contentPageSelect = document.querySelector('#content-page');
 const contentSearch = document.querySelector('#content-search');
+const contentCategoryTabs = document.querySelector('.content-category-tabs');
 const contentFieldCount = document.querySelector('#content-field-count');
 const contentEditorFields = document.querySelector('#content-editor-fields');
 const contentImageList = document.querySelector('#content-image-list');
@@ -332,7 +333,10 @@ function renderContentFields() {
   const pageId = selectedContentPage;
   const fields = contentFieldsByPage[pageId] || [];
   const query = contentSearch.value.trim().toLowerCase();
-  const visible = fields.filter((field) => `${field.label} ${field.value}`.toLowerCase().includes(query));
+  const visible = fields.filter((field) => {
+    const value = contentDrafts[pageId]?.[field.key] ?? siteContent.overrides[pageId]?.[field.key] ?? field.value;
+    return matchesContentSearch(query, `${field.label} ${value}`);
+  });
   contentEditorFields.replaceChildren();
   contentFieldCount.textContent = `${visible.length} of ${fields.length} text fields`;
   if (!visible.length) {
@@ -376,6 +380,62 @@ function renderContentFields() {
     contentEditorFields.append(label);
   });
 }
+
+function matchesContentSearch(query, text) {
+  if (!query) return true;
+  const queryWords = query.split(/\s+/).filter(Boolean);
+  const textWords = text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  return queryWords.every((queryWord) => textWords.some((textWord) => {
+    if (textWord.includes(queryWord) || queryWord.includes(textWord)) return true;
+    if (queryWord.length < 3 || textWord.length < 3) return false;
+    const maxDistance = queryWord.length >= 7 ? 2 : 1;
+    return editDistanceWithin(queryWord, textWord, maxDistance);
+  }));
+}
+
+function editDistanceWithin(left, right, limit) {
+  if (Math.abs(left.length - right.length) > limit) return false;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex];
+    let rowMinimum = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      current[rightIndex] = Math.min(
+        previous[rightIndex] + 1,
+        current[rightIndex - 1] + 1,
+        previous[rightIndex - 1] + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+      );
+      rowMinimum = Math.min(rowMinimum, current[rightIndex]);
+    }
+    if (rowMinimum > limit) return false;
+    previous = current;
+  }
+  return previous[right.length] <= limit;
+}
+
+contentCategoryTabs.addEventListener('click', (event) => {
+  const tab = event.target.closest('[data-content-category]');
+  if (!tab) return;
+  contentCategoryTabs.querySelectorAll('[role="tab"]').forEach((item) => {
+    const selected = item === tab;
+    item.classList.toggle('is-active', selected);
+    item.setAttribute('aria-selected', String(selected));
+    item.tabIndex = selected ? 0 : -1;
+    document.querySelector(`#${item.getAttribute('aria-controls')}`).hidden = !selected;
+  });
+});
+
+contentCategoryTabs.addEventListener('keydown', (event) => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  const tabs = [...contentCategoryTabs.querySelectorAll('[role="tab"]')];
+  const activeIndex = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+  const nextIndex = event.key === 'Home' ? 0
+    : event.key === 'End' ? tabs.length - 1
+      : (activeIndex + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+  event.preventDefault();
+  tabs[nextIndex].focus();
+  tabs[nextIndex].click();
+});
 
 function renderAddedContentSections() {
   const sections = siteContent.sections[selectedContentPage] || [];
