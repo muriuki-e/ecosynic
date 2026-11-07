@@ -3051,9 +3051,10 @@ html[data-theme="dark"] .advisor-error {
   color: #d1d9ca;
   font-size: 14px;
 }
-.staff-directory {
+.staff-directory.section-wrap {
   width: calc(100% - 64px);
   max-width: none;
+  margin-inline: auto;
   padding-block: 76px 105px;
 }
 .staff-directory-heading {
@@ -3074,11 +3075,6 @@ html[data-theme="dark"] .advisor-error {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
-}
-@media (max-width: 950px) {
-  .staff-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 @media (max-width: 760px) {
   .staff-list {
@@ -3604,7 +3600,7 @@ html[data-theme="dark"] .advisor-error {
   .staff-hero-copy {
     font-size: 12px;
   }
-  .staff-directory {
+  .staff-directory.section-wrap {
     width: calc(100% - 40px);
     padding-block: 58px 78px;
   }
