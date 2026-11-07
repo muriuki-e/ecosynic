@@ -3106,7 +3106,7 @@ html[data-theme="dark"] .advisor-error {
   height: 100%;
   display: block;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center top;
 }
 .staff-photo figcaption {
   position: absolute;
@@ -3203,7 +3203,7 @@ html[data-theme="dark"] .advisor-error {
   aspect-ratio: 4 / 3;
   display: block;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center top;
   background: var(--paper-deep);
 }
 .team-profile-heading h1 {
