@@ -7,6 +7,7 @@
   ],
   "rewrites": [
     { "source": "/api/article-image", "destination": "/api/articles?image=1" },
+    { "source": "/api/gallery-photo", "destination": "/api/gallery?photo=1" },
     { "source": "/home", "destination": "/index" }
   ]
 }
