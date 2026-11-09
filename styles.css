@@ -3075,11 +3075,24 @@ html[data-theme="dark"] .advisor-error {
   margin-top: 54px;
 }
 .staff-group > h3 {
-  margin: 0 0 18px;
-  color: var(--ink);
+  position: relative;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--green-dark);
   font-family: var(--display);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: clamp(25px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+.staff-group > h3::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 52px;
+  height: 3px;
+  background: var(--lime);
+  content: "";
 }
 .staff-list {
   display: grid;
