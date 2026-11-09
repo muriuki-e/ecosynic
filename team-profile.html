@@ -33,18 +33,23 @@
     <a class="team-profile-back" href="/staff">← Back to our team</a>
     <p class="team-profile-status" id="team-profile-status" role="status" aria-live="polite">Loading team profile...</p>
     <article class="team-profile" id="team-profile" hidden>
-      <div class="team-profile-heading">
+      <div class="team-profile-cover" aria-hidden="true">
+        <span>ECOSYNIC <em>AFRICA</em></span>
+        <span class="team-profile-cover-note">OUR PEOPLE · OUR PLACE · OUR FUTURE</span>
+      </div>
+      <header class="team-profile-heading">
         <img class="team-profile-photo" id="team-profile-photo" alt="">
-        <div>
-          <p class="eyebrow"><span class="eyebrow-line"></span> OUR PEOPLE</p>
+        <div class="team-profile-identity">
+          <p class="team-profile-category" id="team-profile-category"></p>
           <h1 id="team-profile-name"></h1>
           <p class="team-profile-role" id="team-profile-role"></p>
+          <p class="team-profile-organization"><span aria-hidden="true"></span>Ecosynic Africa</p>
         </div>
-      </div>
+      </header>
       <section class="team-profile-cv" aria-labelledby="team-profile-cv-heading">
-        <p class="eyebrow"><span class="eyebrow-line"></span> PROFILE</p>
+        <p class="team-profile-section-kicker">PROFILE</p>
         <h2 id="team-profile-cv-heading">About</h2>
-        <div id="team-profile-cv-sections"></div>
+        <div class="team-profile-cv-sections" id="team-profile-cv-sections"></div>
       </section>
     </article>
   </main>

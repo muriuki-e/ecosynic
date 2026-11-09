@@ -2,6 +2,7 @@
   const status = document.querySelector('#team-profile-status');
   const profileElement = document.querySelector('#team-profile');
   const photo = document.querySelector('#team-profile-photo');
+  const category = document.querySelector('#team-profile-category');
   const name = document.querySelector('#team-profile-name');
   const role = document.querySelector('#team-profile-role');
   const cvSections = document.querySelector('#team-profile-cv-sections');
@@ -26,6 +27,7 @@
 
       photo.src = profile.photoUrl;
       photo.alt = `Portrait of ${profile.name}`;
+      category.textContent = profile.category === 'board' ? 'Board of Directors' : 'Our Staff';
       name.textContent = profile.name;
       role.textContent = profile.role;
       document.title = `${profile.name} | Ecosynic Africa`;
@@ -45,6 +47,7 @@
         });
       } else {
         const empty = document.createElement('p');
+        empty.className = 'team-profile-empty';
         empty.textContent = 'Profile information will be added soon.';
         cvSections.append(empty);
       }
