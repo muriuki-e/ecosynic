@@ -41,7 +41,14 @@
         <span id="staff-count">Loading profiles...</span>
       </div>
       <p class="staff-status" id="staff-status" role="status">Loading team profiles...</p>
-      <div class="staff-list" id="staff-list"></div>
+      <section class="staff-group" id="board-group" aria-labelledby="board-heading" hidden>
+        <h3 id="board-heading">Board of Directors</h3>
+        <div class="staff-list" id="board-list"></div>
+      </section>
+      <section class="staff-group" id="staff-group" aria-labelledby="team-staff-heading" hidden>
+        <h3 id="team-staff-heading">Our Staff</h3>
+        <div class="staff-list" id="staff-list"></div>
+      </section>
     </section>
   </main>
   <footer class="site-footer">

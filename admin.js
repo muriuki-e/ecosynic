@@ -37,6 +37,7 @@ const profileCount = document.querySelector('#profile-count');
 const storageNotice = document.querySelector('#storage-notice');
 const profileName = document.querySelector('#profile-name');
 const profileRole = document.querySelector('#profile-role');
+const profileCategory = document.querySelector('#profile-category');
 const profileCvSections = document.querySelector('#profile-cv-sections');
 const addProfileCvSectionButton = document.querySelector('#add-profile-cv-section');
 const saveButton = document.querySelector('#save-profile');
@@ -1201,6 +1202,7 @@ profileForm.addEventListener('submit', async (event) => {
   const payload = {
     name: profileName.value,
     role: profileRole.value,
+    category: profileCategory.value,
     cvSections: [...profileCvSections.querySelectorAll('.profile-cv-section')].map((section) => ({
       heading: section.querySelector('[name="cv-heading"]').value,
       content: section.querySelector('[name="cv-content"]').value,
@@ -1275,7 +1277,9 @@ function renderProfiles() {
     name.textContent = profile.name;
     const role = document.createElement('p');
     role.textContent = profile.role;
-    details.append(name, role);
+    const category = document.createElement('p');
+    category.textContent = profile.category === 'board' ? 'Board of Directors' : 'Our Staff';
+    details.append(name, role, category);
     const actions = document.createElement('div');
     actions.className = 'admin-profile-actions';
     const edit = document.createElement('button');
@@ -1299,6 +1303,7 @@ function openForm(profile = null) {
   profileFormTitle.textContent = profile ? 'Edit team member' : 'Add team member';
   profileName.value = profile?.name || '';
   profileRole.value = profile?.role || '';
+  profileCategory.value = profile?.category || 'staff';
   renderProfileCvSections(profile?.cvSections || []);
   profileError.textContent = '';
   photoError.textContent = '';
