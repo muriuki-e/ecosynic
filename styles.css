@@ -5243,7 +5243,9 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 .content-editor-field input,
 .content-editor-field textarea,
 .content-added-card input,
-.content-added-card textarea {
+.content-added-card textarea,
+.content-added-card select,
+.content-added-settings select {
   width: 100%;
   min-height: 44px;
   padding: 11px 13px;
@@ -5260,6 +5262,11 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 .content-editor-field textarea:focus,
 .content-added-card input:focus,
 .content-added-card textarea:focus {
+  outline: 2px solid #78915d;
+  outline-offset: 1px;
+}
+.content-added-card select:focus,
+.content-added-settings select:focus {
   outline: 2px solid #78915d;
   outline-offset: 1px;
 }
@@ -5418,6 +5425,29 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 .content-added-editor .admin-toolbar .admin-lede {
   max-width: 500px;
 }
+.content-added-settings {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  border: 1px solid #e0e5dc;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .72);
+}
+.content-added-settings label {
+  width: min(100%, 320px);
+  display: grid;
+  gap: 7px;
+  color: #44503f;
+  font-size: 11px;
+  font-weight: 700;
+}
+.content-added-settings .admin-lede {
+  margin: 0 0 2px;
+  color: #66715f;
+  font-size: 11px;
+}
 .content-added-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5436,6 +5466,24 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 .content-added-card label {
   color: #44503f;
 }
+.content-added-image-field {
+  display: grid;
+  gap: 10px;
+}
+.content-added-image-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.content-added-image-help {
+  margin: -5px 0 0;
+  color: #66715f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.content-added-card select {
+  font: 500 14px/1.55 "DM Sans", sans-serif;
+}
 .content-added-actions {
   padding-top: 4px;
   display: flex;
@@ -5449,9 +5497,40 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
   padding: clamp(42px, 7vw, 88px) max(24px, calc((100vw - 1120px) / 2));
   border-top: 1px solid rgba(83, 104, 75, .2);
 }
+.site-added-content-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.site-added-content-list.is-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 30px max(24px, calc((100vw - 1120px) / 2));
+}
+.site-added-content-list.is-grid .site-added-content {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-deep);
+}
 .site-added-content-inner {
   max-width: 760px;
   margin: 0 auto;
+}
+.site-added-content[data-alignment="left"] .site-added-content-inner {
+  margin-left: 0;
+  text-align: left;
+}
+.site-added-content[data-alignment="center"] .site-added-content-inner {
+  margin-inline: auto;
+  text-align: center;
+}
+.site-added-content[data-alignment="right"] .site-added-content-inner {
+  margin-right: 0;
+  margin-left: auto;
+  text-align: right;
+}
+.site-added-content-list.is-grid .site-added-content-inner {
+  max-width: none;
 }
 .site-added-content h2 {
   margin: 10px 0 16px;
@@ -5468,10 +5547,17 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 }
 .site-added-content-image {
   width: 100%;
+  max-width: 100%;
   max-height: 480px;
   margin-top: 24px;
   display: block;
   object-fit: cover;
+}
+.site-added-content[data-alignment="center"] .site-added-content-image {
+  margin-inline: auto;
+}
+.site-added-content[data-alignment="right"] .site-added-content-image {
+  margin-left: auto;
 }
 .site-long-text-copy {
   max-height: var(--site-long-text-max-height);
@@ -5552,8 +5638,13 @@ html[data-theme="dark"] .content-added-card {
 html[data-theme="dark"] .content-added-card label {
   color: #dce5d4;
 }
+html[data-theme="dark"] .content-added-image-help {
+  color: #b5c0ac;
+}
 html[data-theme="dark"] .content-added-card input,
-html[data-theme="dark"] .content-added-card textarea {
+html[data-theme="dark"] .content-added-card textarea,
+html[data-theme="dark"] .content-added-card select,
+html[data-theme="dark"] .content-added-settings select {
   border-color: #485443;
   color: #edf1e7;
   background: #141a14;
@@ -5561,6 +5652,16 @@ html[data-theme="dark"] .content-added-card textarea {
 html[data-theme="dark"] .content-image-card {
   border-color: #485443;
   background: #1b231a;
+}
+html[data-theme="dark"] .content-added-settings {
+  border-color: #485443;
+  background: rgba(20, 26, 20, .7);
+}
+html[data-theme="dark"] .content-added-settings label {
+  color: #dce5d4;
+}
+html[data-theme="dark"] .content-added-settings .admin-lede {
+  color: #b5c0ac;
 }
 html[data-theme="dark"] .content-image-card h4,
 html[data-theme="dark"] .content-image-editor-heading h3 {
@@ -5598,7 +5699,18 @@ html[data-theme="dark"] .site-long-text-toggle {
     white-space: normal;
   }
   .content-editor-fields,
-  .content-added-list {
+  .content-added-list,
+  .site-added-content-list.is-grid {
+    grid-template-columns: 1fr;
+  }
+  .content-added-settings {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .content-added-settings label {
+    width: 100%;
+  }
+  .content-added-image-dimensions {
     grid-template-columns: 1fr;
   }
   .content-added-editor {

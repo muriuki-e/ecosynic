@@ -164,31 +164,47 @@
         });
       }
       const addedSections = content.sections?.[pageId] || [];
-      addedSections.forEach((section) => {
-        const wrapper = document.createElement('section');
-        wrapper.className = 'site-added-content';
-        const inner = document.createElement('div');
-        inner.className = 'site-added-content-inner';
-        const eyebrow = document.createElement('p');
-        eyebrow.className = 'eyebrow';
-        eyebrow.textContent = 'MORE FROM ECOSYNIC';
-        const heading = document.createElement('h2');
-        heading.textContent = section.title;
-        const body = document.createElement('p');
-        body.className = 'site-added-content-copy';
-        body.textContent = section.body;
-        inner.append(eyebrow, heading, body);
-        if (section.imageUrl) {
-          const image = document.createElement('img');
-          image.className = 'site-added-content-image';
-          image.src = section.imageUrl;
-          image.alt = section.imageAlt;
-          image.loading = 'lazy';
-          inner.append(image);
+      if (addedSections.length) {
+        const sectionList = document.createElement('div');
+        sectionList.className = 'site-added-content-list';
+        if (content.sectionLayouts?.[pageId] === 'grid' && addedSections.length > 1) {
+          sectionList.classList.add('is-grid');
         }
-        wrapper.append(inner);
-        main?.append(wrapper);
-      });
+        addedSections.forEach((section) => {
+          const wrapper = document.createElement('section');
+          wrapper.className = 'site-added-content';
+          wrapper.dataset.alignment = section.alignment || 'left';
+          const inner = document.createElement('div');
+          inner.className = 'site-added-content-inner';
+          const eyebrow = document.createElement('p');
+          eyebrow.className = 'eyebrow';
+          eyebrow.textContent = 'MORE FROM ECOSYNIC';
+          const heading = document.createElement('h2');
+          heading.textContent = section.title;
+          const body = document.createElement('p');
+          body.className = 'site-added-content-copy';
+          body.textContent = section.body;
+          inner.append(eyebrow, heading, body);
+          if (section.imageUrl) {
+            const image = document.createElement('img');
+            image.className = 'site-added-content-image';
+            image.src = section.imageUrl;
+            image.alt = section.imageAlt;
+            image.loading = 'lazy';
+            if (Number.isInteger(section.imageWidth) && section.imageWidth > 0) {
+              image.style.width = `${section.imageWidth}px`;
+            }
+            if (Number.isInteger(section.imageHeight) && section.imageHeight > 0) {
+              image.style.height = `${section.imageHeight}px`;
+              image.style.maxHeight = 'none';
+            }
+            inner.append(image);
+          }
+          wrapper.append(inner);
+          sectionList.append(wrapper);
+        });
+        main?.append(sectionList);
+      }
       addLongTextToggles(main);
     } catch (error) {
       console.error('Could not load website content:', error.message || error);

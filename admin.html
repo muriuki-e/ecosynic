@@ -269,9 +269,18 @@
           <div class="admin-toolbar">
             <div>
               <h3 id="content-added-title">Additional sections</h3>
-              <p class="admin-lede">New sections appear after the page’s existing content. Reorder them here.</p>
+              <p class="admin-lede">New sections appear after the page’s existing content. Set their alignment and choose how multiple sections are arranged.</p>
             </div>
             <button class="admin-button-secondary" id="add-content-section" type="button">Add section <span aria-hidden="true">+</span></button>
+          </div>
+          <div class="content-added-settings">
+            <label for="content-section-layout">Multiple sections layout
+              <select id="content-section-layout">
+                <option value="stacked">Stacked — one per row</option>
+                <option value="grid">Two columns — side by side</option>
+              </select>
+            </label>
+            <p class="admin-lede">On small screens, sections always stack for readability.</p>
           </div>
           <div class="content-added-list" id="content-added-list"></div>
         </section>

@@ -16,6 +16,7 @@ const contentAdminError = document.querySelector('#content-admin-error');
 const saveSiteContentButton = document.querySelector('#save-site-content');
 const addContentSectionButton = document.querySelector('#add-content-section');
 const contentAddedList = document.querySelector('#content-added-list');
+const contentSectionLayout = document.querySelector('#content-section-layout');
 const profileForm = document.querySelector('#profile-form');
 const profileFormTitle = document.querySelector('#profile-form-title');
 const profileDialog = document.querySelector('#profile-dialog');
@@ -92,7 +93,7 @@ let previewUrl = '';
 let photoUploadPending = false;
 let pendingAction = null;
 let toastTimer = null;
-let siteContent = { overrides: {}, sections: {} };
+let siteContent = { overrides: {}, sections: {}, sectionLayouts: {} };
 let contentFieldsByPage = {};
 let contentDrafts = {};
 let contentImageTargets = {};
@@ -167,6 +168,7 @@ async function loadSiteContent() {
     siteContent = await api('/api/content');
     siteContent.overrides ||= {};
     siteContent.sections ||= {};
+    siteContent.sectionLayouts ||= {};
     siteContent.images ||= {};
     contentPageSelect.replaceChildren();
     contentFieldsByPage = {};
@@ -174,6 +176,7 @@ async function loadSiteContent() {
     window.EcosynicContent.pages.forEach((page) => {
       siteContent.overrides[page.id] ||= {};
       siteContent.sections[page.id] ||= [];
+      siteContent.sectionLayouts[page.id] ||= 'stacked';
       siteContent.images[page.id] ||= {};
       const option = document.createElement('option');
       option.value = page.id;
@@ -440,6 +443,7 @@ contentCategoryTabs.addEventListener('keydown', (event) => {
 
 function renderAddedContentSections() {
   const sections = siteContent.sections[selectedContentPage] || [];
+  contentSectionLayout.value = siteContent.sectionLayouts[selectedContentPage] || 'stacked';
   contentAddedList.replaceChildren();
   if (!sections.length) {
     const empty = document.createElement('p');
@@ -450,8 +454,28 @@ function renderAddedContentSections() {
   }
 
   sections.forEach((section, index) => {
+    section.alignment ||= 'left';
     const card = document.createElement('article');
     card.className = 'content-added-card';
+    const alignmentLabel = document.createElement('label');
+    alignmentLabel.textContent = 'Content alignment';
+    const alignment = document.createElement('select');
+    alignment.setAttribute('aria-label', `Content alignment for section ${index + 1}`);
+    [
+      ['left', 'Left'],
+      ['center', 'Center'],
+      ['right', 'Right'],
+    ].forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      alignment.append(option);
+    });
+    alignment.value = section.alignment;
+    alignment.addEventListener('change', () => {
+      section.alignment = alignment.value;
+    });
+    alignmentLabel.append(alignment);
     const titleLabel = document.createElement('label');
     titleLabel.textContent = 'Section heading';
     const title = document.createElement('input');
@@ -473,8 +497,10 @@ function renderAddedContentSections() {
       section.body = body.value;
     });
     bodyLabel.append(body);
-    const imageLabel = document.createElement('label');
-    imageLabel.textContent = 'Optional section image';
+    const imageLabel = document.createElement('div');
+    imageLabel.className = 'content-added-image-field';
+    const imageFileLabel = document.createElement('label');
+    imageFileLabel.textContent = 'Optional section image';
     const imageInput = document.createElement('input');
     imageInput.type = 'file';
     imageInput.accept = 'image/jpeg,image/png,image/webp';
@@ -483,6 +509,7 @@ function renderAddedContentSections() {
     imagePreview.alt = '';
     imagePreview.hidden = !section.imageUrl;
     if (section.imageUrl) imagePreview.src = section.imageUrl;
+    imageFileLabel.append(imageInput, imagePreview);
     imageInput.addEventListener('change', async () => {
       const [file] = imageInput.files || [];
       if (!file) return;
@@ -500,9 +527,45 @@ function renderAddedContentSections() {
     const altLabel = document.createElement('label');
     altLabel.textContent = 'Image alternative text';
     const imageAlt = document.createElement('input');
+    imageAlt.id = `content-image-alt-${section.id}`;
+    altLabel.htmlFor = imageAlt.id;
     imageAlt.maxLength = 200;
     imageAlt.value = section.imageAlt || '';
     imageAlt.addEventListener('input', () => { section.imageAlt = imageAlt.value; });
+    const dimensions = document.createElement('div');
+    dimensions.className = 'content-added-image-dimensions';
+    const imageWidthLabel = document.createElement('label');
+    imageWidthLabel.textContent = 'Image width (px)';
+    const imageWidth = document.createElement('input');
+    imageWidth.type = 'number';
+    imageWidth.min = '1';
+    imageWidth.max = '2400';
+    imageWidth.step = '1';
+    imageWidth.inputMode = 'numeric';
+    imageWidth.value = section.imageWidth || '';
+    imageWidth.addEventListener('input', () => {
+      if (imageWidth.value === '') delete section.imageWidth;
+      else section.imageWidth = Number(imageWidth.value);
+    });
+    imageWidthLabel.append(imageWidth);
+    const imageHeightLabel = document.createElement('label');
+    imageHeightLabel.textContent = 'Image height (px)';
+    const imageHeight = document.createElement('input');
+    imageHeight.type = 'number';
+    imageHeight.min = '1';
+    imageHeight.max = '2400';
+    imageHeight.step = '1';
+    imageHeight.inputMode = 'numeric';
+    imageHeight.value = section.imageHeight || '';
+    imageHeight.addEventListener('input', () => {
+      if (imageHeight.value === '') delete section.imageHeight;
+      else section.imageHeight = Number(imageHeight.value);
+    });
+    imageHeightLabel.append(imageHeight);
+    dimensions.append(imageWidthLabel, imageHeightLabel);
+    const dimensionHelp = document.createElement('p');
+    dimensionHelp.className = 'content-added-image-help';
+    dimensionHelp.textContent = 'Leave blank to use the responsive default size.';
     const removeImage = document.createElement('button');
     removeImage.type = 'button';
     removeImage.className = 'admin-button-secondary';
@@ -511,14 +574,18 @@ function renderAddedContentSections() {
     removeImage.addEventListener('click', () => {
       delete section.imageUrl;
       delete section.imageAlt;
+      delete section.imageWidth;
+      delete section.imageHeight;
       imagePreview.removeAttribute('src');
       imagePreview.hidden = true;
       imageAlt.value = '';
+      imageWidth.value = '';
+      imageHeight.value = '';
       removeImage.hidden = true;
     });
     imageAlt.required = Boolean(section.imageUrl);
     imageInput.addEventListener('change', () => { imageAlt.required = Boolean(imageInput.files?.length || section.imageUrl); });
-    imageLabel.append(imageInput, imagePreview, altLabel, imageAlt, removeImage);
+    imageLabel.append(imageFileLabel, altLabel, imageAlt, dimensions, dimensionHelp, removeImage);
     const actions = document.createElement('div');
     actions.className = 'content-added-actions';
     const up = document.createElement('button');
@@ -542,7 +609,7 @@ function renderAddedContentSections() {
       renderAddedContentSections();
     });
     actions.append(up, down, remove);
-    card.append(titleLabel, bodyLabel, imageLabel, actions);
+    card.append(alignmentLabel, titleLabel, bodyLabel, imageLabel, actions);
     contentAddedList.append(card);
   });
 }
@@ -556,6 +623,9 @@ function moveContentSection(index, direction) {
 
 contentPageSelect.addEventListener('change', () => {
   loadContentPage(contentPageSelect.value);
+});
+contentSectionLayout.addEventListener('change', () => {
+  siteContent.sectionLayouts[selectedContentPage] = contentSectionLayout.value;
 });
 contentSearch.addEventListener('input', renderContentFields);
 addContentSectionButton.addEventListener('click', () => {
