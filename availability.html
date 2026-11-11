@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#102018">
+  <title>Website availability | Ecosynic Africa</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "DM Sans", "Segoe UI", sans-serif;
+      background: #101914;
+      color: #f3f5ef;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 32px 20px;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 50% 0, rgba(91, 126, 68, .18), transparent 58%),
+        #101914;
+    }
+    .availability-card {
+      width: min(940px, 100%);
+      overflow: hidden;
+      border: 1px solid rgba(201, 219, 189, .15);
+      border-radius: 18px;
+      background: #17211b;
+      box-shadow: 0 32px 100px rgba(0, 0, 0, .34);
+    }
+    .availability-topbar {
+      min-height: 66px;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid rgba(201, 219, 189, .12);
+    }
+    .availability-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: #f3f5ef;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .availability-mark {
+      width: 27px;
+      height: 27px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(188, 219, 154, .5);
+      border-radius: 8px;
+      color: #c3df9e;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+    .availability-code {
+      color: #87958a;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+    .availability-content {
+      padding: clamp(26px, 6vw, 58px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, .92fr);
+      align-items: center;
+      gap: clamp(28px, 6vw, 65px);
+    }
+    .availability-copy { grid-column: 1; grid-row: 1; }
+    .availability-eyebrow {
+      margin: 0 0 19px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #b6d790;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .availability-eyebrow::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #b6d790;
+      box-shadow: 0 0 12px rgba(182, 215, 144, .8);
+      content: "";
+      animation: status-pulse 2s ease-in-out infinite;
+    }
+    .availability-copy h1 {
+      max-width: 470px;
+      margin: 0;
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      font-size: clamp(34px, 5vw, 54px);
+      font-weight: 700;
+      letter-spacing: -.055em;
+      line-height: 1.08;
+    }
+    .availability-message {
+      max-width: 425px;
+      margin: 19px 0 0;
+      color: #b2bdb2;
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    .availability-contact {
+      min-height: 45px;
+      margin-top: 27px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid rgba(195, 223, 158, .36);
+      border-radius: 7px;
+      color: #d6e8c2;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .availability-contact:hover {
+      border-color: #b6d790;
+      background: rgba(182, 215, 144, .09);
+    }
+    .availability-visual {
+      min-height: 300px;
+      position: relative;
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(201, 219, 189, .12);
+      border-radius: 14px;
+      background-color: #1c2a21;
+      background-image: linear-gradient(rgba(196, 218, 183, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(196, 218, 183, .045) 1px, transparent 1px);
+      background-size: 26px 26px;
+    }
+    .availability-visual::before {
+      width: 230px;
+      height: 230px;
+      position: absolute;
+      border: 1px solid rgba(182, 215, 144, .13);
+      border-radius: 50%;
+      content: "";
+    }
+    .availability-visual::after {
+      width: 184px;
+      height: 184px;
+      position: absolute;
+      border: 1px dashed rgba(182, 215, 144, .17);
+      border-radius: 50%;
+      content: "";
+      animation: orbit 35s linear infinite;
+    }
+    .availability-visual svg {
+      width: min(92%, 310px);
+      height: auto;
+      position: relative;
+      z-index: 1;
+      overflow: visible;
+    }
+    .availability-maintenance-art,
+    .availability-outage-art { display: block; }
+    .availability-outage-art { display: none; }
+    [data-mode="offline"] .availability-maintenance-art { display: none; }
+    [data-mode="offline"] .availability-outage-art { display: block; }
+    .availability-caption {
+      position: absolute;
+      right: 15px;
+      bottom: 14px;
+      left: 15px;
+      z-index: 2;
+      color: #91a292;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .availability-details {
+      padding: 0 clamp(26px, 6vw, 58px) 25px;
+    }
+    .availability-details-inner {
+      padding-top: 19px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px 24px;
+      border-top: 1px solid rgba(201, 219, 189, .12);
+      color: #89978b;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .availability-details strong {
+      margin-left: 6px;
+      color: #c3df9e;
+      font-weight: 600;
+    }
+    [data-mode="offline"] .availability-details strong { color: #e4ab83; }
+    @keyframes status-pulse {
+      50% { opacity: .48; box-shadow: 0 0 4px rgba(182, 215, 144, .35); }
+    }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @media (max-width: 680px) {
+      body { padding: 18px 14px; }
+      .availability-topbar { min-height: 58px; padding: 0 18px; }
+      .availability-code { font-size: 9px; }
+      .availability-content { grid-template-columns: 1fr; gap: 28px; }
+      .availability-copy { grid-row: 2; }
+      .availability-visual {
+        min-height: 235px;
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .availability-visual svg { width: min(78%, 265px); }
+      .availability-visual::before { width: 190px; height: 190px; }
+      .availability-visual::after { width: 154px; height: 154px; }
+      .availability-copy h1 { font-size: clamp(36px, 10vw, 48px); }
+      .availability-details-inner { display: grid; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body data-mode="maintenance">
+  <main class="availability-card">
+    <header class="availability-topbar">
+      <div class="availability-brand"><span class="availability-mark" aria-hidden="true">e</span> Ecosynic Africa</div>
+      <span class="availability-code">SYSTEM NOTICE · <span id="notice-code">MAINTENANCE</span></span>
+    </header>
+    <div class="availability-content">
+      <section class="availability-copy" aria-labelledby="availability-title">
+        <p class="availability-eyebrow" id="availability-eyebrow">Scheduled maintenance</p>
+        <h1 id="availability-title">We’ll be back shortly.</h1>
+        <p class="availability-message" id="availability-message">We’re tuning things behind the scenes. Our team is working on the website, and we’ll be back online as soon as the updates are complete.</p>
+        <a class="availability-contact" href="mailto:info@ecosynic.or.ke">
+          <span id="contact-label">Need to reach us?</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </section>
+      <div class="availability-visual">
+        <svg class="availability-maintenance-art" viewBox="0 0 320 270" role="img" aria-labelledby="maintenance-art-title">
+          <title id="maintenance-art-title">A technician working beside rotating maintenance gears</title>
+          <defs>
+            <linearGradient id="worker-shirt" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b9d690"/><stop offset="1" stop-color="#759659"/></linearGradient>
+            <linearGradient id="gear-fill" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#334c39"/><stop offset="1" stop-color="#24382b"/></linearGradient>
+          </defs>
+          <circle cx="221" cy="111" r="63" fill="none" stroke="#90ad71" stroke-dasharray="2 8" stroke-opacity=".3"/>
+          <g class="animated-gear" transform="translate(218 106)">
+            <path d="M-9-67h18l4 15a53 53 0 0 1 11 5l13-8 13 13-8 13a53 53 0 0 1 5 11l15 4v18l-15 4a53 53 0 0 1-5 11l8 13-13 13-13-8a53 53 0 0 1-11 5l-4 15H-9l-4-15a53 53 0 0 1-11-5l-13 8-13-13 8-13a53 53 0 0 1-5-11l-15-4v-18l15-4a53 53 0 0 1 5-11l-8-13 13-13 13 8a53 53 0 0 1 11-5z" fill="url(#gear-fill)" stroke="#b6d790" stroke-width="2"/>
+            <circle r="29" fill="#19271e" stroke="#b6d790" stroke-opacity=".65" stroke-width="2"/>
+            <circle r="10" fill="#b6d790" fill-opacity=".85"/>
+            <circle r="4" fill="#1c2a21"/>
+          </g>
+          <g transform="translate(76 116)">
+            <path d="M-30-31q0-24 24-24h16q24 0 24 24v4h-64z" fill="#dba85f" stroke="#f0c77e" stroke-width="2"/>
+            <path d="M-22-31h48" stroke="#704e2d" stroke-width="3"/>
+            <circle cy="-11" r="21" fill="#9b674d"/>
+            <path d="M-19-14q19-19 38 0v7h-38z" fill="#26362a"/>
+            <path d="M-13 6q13 10 26 0l8 10-4 13h-34l-4-13z" fill="#c78863"/>
+            <path d="M-34 40q8-23 32-23h6q24 0 32 23l11 67h-92z" fill="url(#worker-shirt)" stroke="#b6d790" stroke-width="2"/>
+            <path d="M-31 45l-27 31 16 13 26-28m48-16 21 24-13 13-24-20" fill="none" stroke="#c78863" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+            <path d="M-21 117l-5 38h21l8-38m13 0 8 38h21l-7-39" fill="#27382c" stroke="#b6d790" stroke-opacity=".6" stroke-width="2"/>
+            <path d="M-31 157h28m21 0h27" stroke="#dba85f" stroke-linecap="round" stroke-width="8"/>
+          </g>
+          <g transform="translate(126 89) rotate(-35)">
+            <path d="M-5-16h10v32H-5z" fill="#e0b56d"/>
+            <circle r="11" fill="none" stroke="#e0b56d" stroke-width="4"/>
+            <path d="M0 16v14" stroke="#e0b56d" stroke-linecap="round" stroke-width="5"/>
+          </g>
+          <path d="M37 213h244" stroke="#88a36e" stroke-opacity=".35"/>
+          <circle cx="270" cy="51" r="4" fill="#b6d790"/>
+          <circle cx="181" cy="197" r="3" fill="#dba85f"/>
+        </svg>
+        <svg class="availability-outage-art" viewBox="0 0 320 270" role="img" aria-labelledby="outage-art-title">
+          <title id="outage-art-title">A temporarily paused website service status indicator</title>
+          <defs>
+            <linearGradient id="outage-glow" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ddad79"/><stop offset="1" stop-color="#b86e55"/></linearGradient>
+          </defs>
+          <circle cx="160" cy="118" r="77" fill="none" stroke="#dba85f" stroke-dasharray="3 9" stroke-opacity=".35"/>
+          <circle cx="160" cy="118" r="59" fill="#26362a" stroke="#dba85f" stroke-opacity=".72" stroke-width="2"/>
+          <circle cx="160" cy="118" r="45" fill="#1a271e" stroke="#dba85f" stroke-opacity=".27"/>
+          <path d="M147 91v30m26-30v30" stroke="url(#outage-glow)" stroke-linecap="round" stroke-width="9"/>
+          <path d="M121 183h78m-58 15h38" stroke="#91a984" stroke-linecap="round" stroke-opacity=".75" stroke-width="3"/>
+          <path d="M139 55l-9-17m51 17 10-17m-73 102-17 8m118-8 17 8" stroke="#dba85f" stroke-linecap="round" stroke-opacity=".7" stroke-width="3"/>
+          <circle cx="160" cy="118" r="84" fill="none" stroke="#dba85f" stroke-dasharray="3 13" stroke-opacity=".28"/>
+          <circle cx="93" cy="74" r="4" fill="#dba85f"/>
+          <circle cx="230" cy="161" r="4" fill="#dba85f"/>
+          <circle cx="222" cy="72" r="3" fill="#b6d790"/>
+          <path d="M77 213h166" stroke="#88a36e" stroke-opacity=".35"/>
+        </svg>
+        <span class="availability-caption" id="illustration-caption">Service update in progress</span>
+      </div>
+    </div>
+    <footer class="availability-details">
+      <div class="availability-details-inner">
+        <span>Public website <strong id="system-status">UPDATING</strong></span>
+        <span>Admin systems <strong>AVAILABLE</strong></span>
+        <span id="availability-note">Please check back soon</span>
+      </div>
+    </footer>
+  </main>
+  <script>
+    const offline = new URLSearchParams(location.search).get('mode') === 'offline';
+    if (offline) {
+      document.body.dataset.mode = 'offline';
+      document.title = 'Temporarily unavailable | Ecosynic Africa';
+      document.querySelector('#notice-code').textContent = 'SERVICE PAUSED';
+      document.querySelector('#availability-eyebrow').textContent = 'Temporary service interruption';
+      document.querySelector('#availability-title').textContent = 'We’ll be back soon.';
+      document.querySelector('#availability-message').textContent = 'Our website is temporarily unavailable. Our team is working to restore access. Thank you for your patience.';
+      document.querySelector('#contact-label').textContent = 'Contact our team';
+      document.querySelector('#illustration-caption').textContent = 'Public access temporarily paused';
+      document.querySelector('#system-status').textContent = 'PAUSED';
+      document.querySelector('#availability-note').textContent = 'We’re working to restore access';
+    }
+  </script>
+</body>
+</html>

@@ -4158,6 +4158,32 @@ html[data-theme="dark"] .profile-cv-section textarea {
 .admin-confirm-dialog .admin-dialog-lede {
   margin-top: 10px;
 }
+.admin-confirm-secret {
+  margin-top: 20px;
+  display: grid;
+  gap: 8px;
+  color: #344137;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-confirm-secret[hidden] {
+  display: none;
+}
+.admin-confirm-secret input {
+  width: 100%;
+  min-height: 45px;
+  padding: 10px 12px;
+  border: 1px solid #cbd2c8;
+  border-radius: 4px;
+  color: #20281d;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+.admin-confirm-secret input:focus {
+  outline: 2px solid #637b50;
+  outline-offset: 1px;
+}
 .admin-confirm-dialog .admin-form-actions {
   margin-top: 24px;
 }
@@ -4895,6 +4921,76 @@ html[data-theme="dark"] .newsletter-subscriber-state.is-unsubscribed {
 .admin-panel[hidden] {
   display: none;
 }
+.site-controls-list {
+  display: grid;
+  gap: 14px;
+}
+.site-control-card {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #dfe3dc;
+  border-radius: 6px;
+  background: #fff;
+}
+.site-control-card h3 {
+  margin: 0;
+  color: #20281d;
+  font-family: var(--display);
+  font-size: 15px;
+}
+.site-control-card .admin-lede {
+  margin-top: 6px;
+}
+.site-control-switch {
+  width: 48px;
+  height: 28px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 0;
+  border-radius: 20px;
+  background: #a4aaa0;
+  cursor: pointer;
+  transition: background .18s;
+}
+.site-control-switch::before {
+  width: 22px;
+  height: 22px;
+  display: block;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+  transition: transform .18s;
+}
+.site-control-switch[aria-checked="true"] {
+  background: #526e3b;
+}
+.site-control-switch[aria-checked="true"]::before {
+  transform: translateX(20px);
+}
+.site-control-switch:focus-visible {
+  outline: 2px solid #e3754e;
+  outline-offset: 3px;
+}
+.site-control-switch:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+.site-control-status {
+  margin: 16px 0 0;
+  color: #526e3b;
+  font-size: 13px;
+  font-weight: 700;
+}
+.site-control-status[data-mode="maintenance"] {
+  color: #8a6413;
+}
+.site-control-status[data-mode="offline"],
+.site-control-status[data-mode="error"] {
+  color: #9c3d31;
+}
 .admin-section-heading,
 .newsletter-admin-heading {
   margin: 36px 0 22px;
@@ -5149,10 +5245,12 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
     top: 60px;
     min-height: 52px;
     padding-inline: 16px;
+    overflow-x: auto;
   }
   .admin-section-nav a {
-    flex: 1;
+    flex: 0 0 auto;
     min-width: 0;
+    white-space: nowrap;
   }
   .admin-section-heading,
   .newsletter-admin-heading {
@@ -5161,6 +5259,9 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
   }
   .admin-section-heading > .admin-button {
     width: 100%;
+  }
+  .site-control-card {
+    align-items: flex-start;
   }
   .newsletter-count-card {
     width: 100%;
@@ -5961,6 +6062,14 @@ html[data-theme="dark"] .admin-dialog-lede,
 html[data-theme="dark"] .admin-upload-guidance {
   color: #b5c0ac;
 }
+html[data-theme="dark"] .admin-confirm-secret {
+  color: #d5ddce;
+}
+html[data-theme="dark"] .admin-confirm-secret input {
+  border-color: #485443;
+  color: #edf1e8;
+  background: #141a14;
+}
 html[data-theme="dark"] .admin-form label,
 html[data-theme="dark"] .admin-fields label,
 html[data-theme="dark"] .admin-photo-label,
@@ -6049,6 +6158,23 @@ html[data-theme="dark"] .admin-section-nav a[aria-current="page"] {
 }
 html[data-theme="dark"] .admin-section-nav a:hover {
   background: rgba(72, 84, 67, .4);
+}
+html[data-theme="dark"] .site-control-card {
+  border-color: #384336;
+  background: #20291f;
+}
+html[data-theme="dark"] .site-control-card h3 {
+  color: #edf1e7;
+}
+html[data-theme="dark"] .site-control-status {
+  color: #a9cb88;
+}
+html[data-theme="dark"] .site-control-status[data-mode="maintenance"] {
+  color: #e6c46c;
+}
+html[data-theme="dark"] .site-control-status[data-mode="offline"],
+html[data-theme="dark"] .site-control-status[data-mode="error"] {
+  color: #f09a89;
 }
 html[data-theme="dark"] .newsletter-admin-heading,
 html[data-theme="dark"] .newsletter-audience-card,

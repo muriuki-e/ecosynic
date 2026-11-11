@@ -44,6 +44,7 @@
     <a href="#gallery-management" data-admin-section="gallery-management">Photo gallery</a>
     <a href="#articles-management" data-admin-section="articles-management">Articles &amp; news</a>
     <a href="#content-management" data-admin-section="content-management">Website content</a>
+    <a href="#site-controls" data-admin-section="site-controls">Site controls</a>
     <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
   </nav>
   <main class="admin-main">
@@ -69,6 +70,34 @@
         <p class="admin-lede">Manage your team, publish articles and events, and keep subscribers up to date.</p>
       </div>
       <p class="admin-notice" id="storage-notice" hidden></p>
+      <section class="admin-panel" id="site-controls" aria-labelledby="site-controls-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <p class="admin-dialog-kicker">WEBSITE AVAILABILITY</p>
+            <h2 id="site-controls-title">Site controls</h2>
+            <p class="admin-lede">Show visitors a maintenance notice or take the public website offline temporarily. The admin dashboard stays available so you can restore access.</p>
+          </div>
+        </div>
+        <div class="site-controls-list">
+          <div class="site-control-card">
+            <div>
+              <h3>Maintenance mode</h3>
+              <p class="admin-lede">Show a maintenance page while the website is being updated.</p>
+            </div>
+            <button class="site-control-switch" id="maintenance-toggle" type="button" role="switch" aria-checked="false" aria-label="Maintenance mode">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="site-control-card site-control-danger">
+            <div>
+              <h3>Kill switch</h3>
+              <p class="admin-lede">Take the public website offline and show a temporary unavailability page.</p>
+            </div>
+            <button class="admin-button is-danger" id="site-kill-switch" type="button">Activate kill switch</button>
+          </div>
+        </div>
+        <p class="site-control-status" id="site-control-status" role="status" aria-live="polite">Checking website status...</p>
+      </section>
       <section class="admin-panel" id="team-management" aria-labelledby="team-management-title">
         <div class="admin-section-heading">
           <div>
@@ -348,6 +377,11 @@
     <p class="admin-dialog-kicker">PLEASE CONFIRM</p>
     <h2 id="confirm-title">Confirm this action</h2>
     <p class="admin-dialog-lede" id="confirm-message"></p>
+    <label class="admin-confirm-secret" id="confirm-secret-field" for="confirm-secret" hidden>
+      Kill switch secret code
+      <input id="confirm-secret" type="password" autocomplete="off" spellcheck="false" aria-describedby="confirm-secret-error">
+    </label>
+    <p class="admin-error" id="confirm-secret-error" role="alert"></p>
     <div class="admin-form-actions">
       <button class="admin-button-secondary" id="confirm-cancel" type="button">Cancel</button>
       <button class="admin-button" id="confirm-action" type="button">Confirm</button>

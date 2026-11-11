@@ -5,6 +5,9 @@ const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
 const themeToggle = document.querySelector('#admin-theme-toggle');
 const sectionNav = document.querySelector('#admin-section-nav');
+const maintenanceToggle = document.querySelector('#maintenance-toggle');
+const siteKillSwitch = document.querySelector('#site-kill-switch');
+const siteControlStatus = document.querySelector('#site-control-status');
 const contentPageSelect = document.querySelector('#content-page');
 const contentSearch = document.querySelector('#content-search');
 const contentCategoryTabs = document.querySelector('.content-category-tabs');
@@ -25,6 +28,9 @@ const confirmTitle = document.querySelector('#confirm-title');
 const confirmMessage = document.querySelector('#confirm-message');
 const confirmActionButton = document.querySelector('#confirm-action');
 const confirmCancelButton = document.querySelector('#confirm-cancel');
+const confirmSecretField = document.querySelector('#confirm-secret-field');
+const confirmSecretInput = document.querySelector('#confirm-secret');
+const confirmSecretError = document.querySelector('#confirm-secret-error');
 const closeProfileButton = document.querySelector('#close-profile');
 const photoDropzone = document.querySelector('#photo-dropzone');
 const profileError = document.querySelector('#profile-error');
@@ -99,6 +105,7 @@ let contentDrafts = {};
 let contentImageTargets = {};
 let selectedContentPage = '';
 let contentPageLoadSequence = 0;
+let siteMode = 'online';
 
 function updateTheme(theme, savePreference = false) {
   document.documentElement.dataset.theme = theme;
@@ -133,7 +140,8 @@ function showDashboard(storageReady) {
   storageNotice.hidden = storageReady;
   storageNotice.textContent = storageReady ? '' : 'Team profiles, gallery photos, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
   const requestedSection = location.hash.slice(1);
-  setAdminSection(['gallery-management', 'articles-management', 'content-management', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
+  setAdminSection(['gallery-management', 'articles-management', 'content-management', 'site-controls', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
+  loadSiteAvailability();
   loadProfiles();
   loadGallery();
   loadArticles();
@@ -152,6 +160,69 @@ function setAdminSection(sectionId) {
     else link.removeAttribute('aria-current');
   });
 }
+
+function updateSiteControls(mode) {
+  siteMode = mode;
+  maintenanceToggle.setAttribute('aria-checked', String(mode === 'maintenance'));
+  siteKillSwitch.textContent = mode === 'offline' ? 'Restore website' : 'Activate kill switch';
+  siteControlStatus.dataset.mode = mode;
+  siteControlStatus.textContent = mode === 'maintenance'
+    ? 'Maintenance mode is on. Visitors see the maintenance page.'
+    : mode === 'offline'
+      ? 'The kill switch is on. Visitors see the temporarily unavailable page.'
+      : 'The public website is live.';
+}
+
+async function loadSiteAvailability() {
+  siteControlStatus.textContent = 'Checking website status...';
+  try {
+    const status = await api('/api/site-status');
+    updateSiteControls(status.mode);
+  } catch (error) {
+    siteControlStatus.textContent = error.message;
+    siteControlStatus.dataset.mode = 'error';
+  }
+}
+
+async function saveSiteAvailability(mode, secretCode = '') {
+  maintenanceToggle.disabled = true;
+  siteKillSwitch.disabled = true;
+  siteControlStatus.textContent = 'Updating website status...';
+  try {
+    const status = await api('/api/site-status', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode, ...(mode === 'offline' ? { secretCode } : {}) }),
+    });
+    updateSiteControls(status.mode);
+    showToast(status.mode === 'online' ? 'The public website is live.' : 'Website status updated.');
+  } catch (error) {
+    siteControlStatus.textContent = error.message;
+    siteControlStatus.dataset.mode = 'error';
+  } finally {
+    maintenanceToggle.disabled = false;
+    siteKillSwitch.disabled = false;
+  }
+}
+
+maintenanceToggle.addEventListener('click', () => {
+  saveSiteAvailability(siteMode === 'maintenance' ? 'online' : 'maintenance');
+});
+
+siteKillSwitch.addEventListener('click', () => {
+  if (siteMode === 'offline') {
+    saveSiteAvailability('online');
+    return;
+  }
+  requestConfirmation({
+    title: 'Take the website offline?',
+    message: 'Visitors will see a temporary unavailability page until you restore the website. Enter your kill switch secret code to continue.',
+    confirmLabel: 'Activate kill switch',
+    danger: true,
+    requireSecretCode: true,
+    run: (secretCode) => saveSiteAvailability('offline', secretCode),
+  });
+});
 
 sectionNav.addEventListener('click', (event) => {
   const link = event.target.closest('a[data-admin-section]');
@@ -1452,14 +1523,19 @@ function addProfileCvSection(section = {}) {
 
 addProfileCvSectionButton.addEventListener('click', () => addProfileCvSection());
 
-function requestConfirmation({ title, message, confirmLabel, danger = false, run }) {
+function requestConfirmation({ title, message, confirmLabel, danger = false, requireSecretCode = false, run }) {
   pendingAction = run;
   confirmTitle.textContent = title;
   confirmMessage.textContent = message;
   confirmActionButton.textContent = confirmLabel;
   confirmActionButton.classList.toggle('is-danger', danger);
+  confirmSecretField.hidden = !requireSecretCode;
+  confirmSecretInput.required = requireSecretCode;
+  confirmSecretInput.value = '';
+  confirmSecretError.textContent = '';
   confirmDialog.showModal();
-  confirmCancelButton.focus();
+  if (requireSecretCode) confirmSecretInput.focus();
+  else confirmCancelButton.focus();
 }
 
 function showToast(message) {
@@ -1470,16 +1546,25 @@ function showToast(message) {
 }
 
 confirmActionButton.addEventListener('click', async () => {
+  if (!confirmSecretField.hidden && !confirmSecretInput.value.trim()) {
+    confirmSecretError.textContent = 'Enter the kill switch secret code to continue.';
+    confirmSecretInput.focus();
+    return;
+  }
   const action = pendingAction;
   pendingAction = null;
+  const secretCode = confirmSecretInput.value;
   confirmDialog.close();
-  if (action) await action();
+  if (action) await action(secretCode);
 });
 
 confirmCancelButton.addEventListener('click', () => confirmDialog.close());
 confirmDialog.addEventListener('close', () => {
   pendingAction = null;
   confirmActionButton.classList.remove('is-danger');
+  confirmSecretInput.value = '';
+  confirmSecretError.textContent = '';
+  confirmSecretField.hidden = true;
 });
 closeProfileButton.addEventListener('click', closeForm);
 profileDialog.addEventListener('close', resetProfileForm);

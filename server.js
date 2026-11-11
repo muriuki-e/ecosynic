@@ -3,7 +3,7 @@ const path = require('node:path');
 const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
-const { handleAdmin, handleArticles, handleArticleImage, handleContent, handleContentImage, handleGallery, handleGalleryPhoto, handleTeam, handleTeamPhoto } = require('./lib/team-api');
+const { handleAdmin, handleArticles, handleArticleImage, handleContent, handleContentImage, handleGallery, handleGalleryPhoto, handleSiteStatus, handleTeam, handleTeamPhoto } = require('./lib/team-api');
 const { handleNewsletter, unsubscribe } = require('./lib/newsletter-api');
 
 const ROOT = __dirname;
@@ -34,6 +34,7 @@ const publicFiles = new Set([
   'gallery.html',
   'articles.html',
   'admin.html',
+  'availability.html',
   'climate-resilience.html',
   'ecosystem-restoration.html',
   'smart-agriculture.html',
@@ -67,6 +68,7 @@ const publicFiles = new Set([
   'images/WhatsApp Image 2026-10-14 at 9.54.29 PM.jpeg',
   'styles.css',
   'script.js',
+  'site-status.js',
   'admin.js',
   'site-content.js',
   'team.js',
@@ -438,6 +440,10 @@ async function handleRequest(request, response) {
   }
   if (url.pathname === '/api/content') {
     await handleContent(request, response);
+    return;
+  }
+  if (url.pathname === '/api/site-status') {
+    await handleSiteStatus(request, response);
     return;
   }
   if (url.pathname === '/api/content-image') {
