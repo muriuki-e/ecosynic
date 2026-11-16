@@ -8,7 +8,10 @@ const sectionNav = document.querySelector('#admin-section-nav');
 const maintenanceToggle = document.querySelector('#maintenance-toggle');
 const siteKillSwitch = document.querySelector('#site-kill-switch');
 const siteControlStatus = document.querySelector('#site-control-status');
-const contentPageSelect = document.querySelector('#content-page');
+const contentPageSearch = document.querySelector('#content-page-search');
+const contentPageList = document.querySelector('#content-page-list');
+const contentPageNavHint = document.querySelector('#content-page-nav-hint');
+const contentPageTitle = document.querySelector('#content-page-title');
 const contentSearch = document.querySelector('#content-search');
 const contentCategoryTabs = document.querySelector('.content-category-tabs');
 const contentFieldCount = document.querySelector('#content-field-count');
@@ -192,7 +195,7 @@ async function saveSiteAvailability(mode, secretCode = '') {
     const status = await api('/api/site-status', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode, ...(mode === 'offline' ? { secretCode } : {}) }),
+      body: JSON.stringify({ mode, ...(mode === 'offline' || secretCode ? { secretCode } : {}) }),
     });
     updateSiteControls(status.mode);
     showToast(status.mode === 'online' ? 'The public website is live.' : 'Website status updated.');
@@ -211,7 +214,13 @@ maintenanceToggle.addEventListener('click', () => {
 
 siteKillSwitch.addEventListener('click', () => {
   if (siteMode === 'offline') {
-    saveSiteAvailability('online');
+    requestConfirmation({
+      title: 'Restore the website?',
+      message: 'Visitors will be able to access the public website again. Enter your kill switch secret code to continue.',
+      confirmLabel: 'Restore website',
+      requireSecretCode: true,
+      run: (secretCode) => saveSiteAvailability('online', secretCode),
+    });
     return;
   }
   requestConfirmation({
@@ -241,7 +250,6 @@ async function loadSiteContent() {
     siteContent.sections ||= {};
     siteContent.sectionLayouts ||= {};
     siteContent.images ||= {};
-    contentPageSelect.replaceChildren();
     contentFieldsByPage = {};
     contentDrafts = {};
     window.EcosynicContent.pages.forEach((page) => {
@@ -249,12 +257,9 @@ async function loadSiteContent() {
       siteContent.sections[page.id] ||= [];
       siteContent.sectionLayouts[page.id] ||= 'stacked';
       siteContent.images[page.id] ||= {};
-      const option = document.createElement('option');
-      option.value = page.id;
-      option.textContent = page.label;
-      contentPageSelect.append(option);
     });
-    selectedContentPage = contentPageSelect.value;
+    selectedContentPage = window.EcosynicContent.pages[0]?.id || '';
+    renderContentPageNavigation();
     await loadContentPage(selectedContentPage);
   } catch (error) {
     contentFieldCount.textContent = '';
@@ -268,6 +273,9 @@ async function loadContentPage(pageId) {
   contentFieldCount.textContent = 'Loading page text...';
   const page = window.EcosynicContent.pages.find((entry) => entry.id === pageId);
   if (!page) return;
+  selectedContentPage = pageId;
+  contentPageTitle.textContent = page.label;
+  renderContentPageNavigation();
   try {
     const response = await fetch(`/${page.file}`);
     if (!response.ok) throw new Error(`Could not load ${page.label}.`);
@@ -287,8 +295,6 @@ async function loadContentPage(pageId) {
       };
     });
     contentImageTargets[pageId] = pageId === 'gallery' ? [] : collectContentImageTargets(main, pageId);
-    contentPageSelect.value = pageId;
-    selectedContentPage = pageId;
     renderContentFields();
     renderContentImages();
     renderAddedContentSections();
@@ -296,6 +302,29 @@ async function loadContentPage(pageId) {
     contentFieldCount.textContent = '';
     contentAdminError.textContent = error.message;
   }
+}
+
+function renderContentPageNavigation() {
+  const query = contentPageSearch.value.trim().toLowerCase();
+  const pages = window.EcosynicContent.pages.filter((page) => page.label.toLowerCase().includes(query));
+  contentPageList.replaceChildren();
+  contentPageNavHint.textContent = query ? `${pages.length} of ${window.EcosynicContent.pages.length} pages` : `${pages.length} pages`;
+  if (!pages.length) {
+    const empty = document.createElement('p');
+    empty.className = 'content-page-empty';
+    empty.textContent = 'No pages match that search.';
+    contentPageList.append(empty);
+    return;
+  }
+  pages.forEach((page) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'content-page-button';
+    button.textContent = page.label;
+    button.dataset.pageId = page.id;
+    button.setAttribute('aria-current', String(page.id === selectedContentPage));
+    contentPageList.append(button);
+  });
 }
 
 function contentImageKey(element, main) {
@@ -692,8 +721,11 @@ function moveContentSection(index, direction) {
   renderAddedContentSections();
 }
 
-contentPageSelect.addEventListener('change', () => {
-  loadContentPage(contentPageSelect.value);
+contentPageSearch.addEventListener('input', renderContentPageNavigation);
+contentPageList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-page-id]');
+  if (!button || button.dataset.pageId === selectedContentPage) return;
+  loadContentPage(button.dataset.pageId);
 });
 contentSectionLayout.addEventListener('change', () => {
   siteContent.sectionLayouts[selectedContentPage] = contentSectionLayout.value;

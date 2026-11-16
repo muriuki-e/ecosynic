@@ -268,51 +268,61 @@
           <button class="admin-button" id="save-site-content" type="button">Save page changes</button>
         </div>
         <p class="admin-error" id="content-admin-error" role="alert"></p>
-        <div class="content-editor-toolbar">
-          <label for="content-page">Choose a page
-            <select id="content-page"></select>
-          </label>
-        </div>
-        <div class="content-category-tabs" role="tablist" aria-label="Website content categories">
-          <button class="content-category-tab is-active" id="content-text-tab" type="button" role="tab" aria-selected="true" aria-controls="content-text-panel" data-content-category="text">Text content</button>
-          <button class="content-category-tab" id="content-images-tab" type="button" role="tab" aria-selected="false" aria-controls="content-images-panel" data-content-category="images" tabindex="-1">Page images</button>
-          <button class="content-category-tab" id="content-sections-tab" type="button" role="tab" aria-selected="false" aria-controls="content-sections-panel" data-content-category="sections" tabindex="-1">Additional sections</button>
-        </div>
-        <section class="content-category-panel" id="content-text-panel" role="tabpanel" aria-labelledby="content-text-tab">
-          <div class="content-editor-toolbar content-search-toolbar">
-            <label for="content-search">Find text
-              <input id="content-search" type="search" placeholder="Search by keyword (typos and partial words are OK)">
+        <div class="content-workspace">
+          <nav class="content-page-nav" aria-label="Website pages">
+            <label class="content-page-search" for="content-page-search">Find a page
+              <input id="content-page-search" type="search" placeholder="Search pages">
             </label>
-            <p class="admin-lede" id="content-field-count">Loading page text...</p>
-          </div>
-          <div class="content-editor-fields" id="content-editor-fields" aria-live="polite"></div>
-        </section>
-        <section class="content-image-editor content-category-panel" id="content-images-panel" role="tabpanel" aria-labelledby="content-images-tab" hidden>
-          <div class="content-image-editor-heading">
-            <div><h3 id="content-image-title">Page images</h3><p class="admin-lede">Upload a replacement photo and update its alternative text.</p></div>
-          </div>
-          <p class="admin-empty" id="content-image-empty" hidden></p>
-          <div class="content-image-list" id="content-image-list"></div>
-        </section>
-        <section class="content-added-editor content-category-panel" id="content-sections-panel" role="tabpanel" aria-labelledby="content-sections-tab" hidden>
-          <div class="admin-toolbar">
-            <div>
-              <h3 id="content-added-title">Additional sections</h3>
-              <p class="admin-lede">New sections appear after the page’s existing content. Set their alignment and choose how multiple sections are arranged.</p>
+            <p class="content-page-nav-hint" id="content-page-nav-hint"></p>
+            <div class="content-page-list" id="content-page-list"></div>
+          </nav>
+          <div class="content-workspace-main">
+            <div class="content-current-page">
+              <p class="admin-dialog-kicker">EDITING PAGE</p>
+              <h3 id="content-page-title">Home page</h3>
             </div>
-            <button class="admin-button-secondary" id="add-content-section" type="button">Add section <span aria-hidden="true">+</span></button>
+            <div class="content-category-tabs" role="tablist" aria-label="Website content categories">
+              <button class="content-category-tab is-active" id="content-text-tab" type="button" role="tab" aria-selected="true" aria-controls="content-text-panel" data-content-category="text">Text content</button>
+              <button class="content-category-tab" id="content-images-tab" type="button" role="tab" aria-selected="false" aria-controls="content-images-panel" data-content-category="images" tabindex="-1">Page images</button>
+              <button class="content-category-tab" id="content-sections-tab" type="button" role="tab" aria-selected="false" aria-controls="content-sections-panel" data-content-category="sections" tabindex="-1">Additional sections</button>
+            </div>
+            <section class="content-category-panel" id="content-text-panel" role="tabpanel" aria-labelledby="content-text-tab">
+              <div class="content-editor-toolbar content-search-toolbar">
+                <label for="content-search">Find text on this page
+                  <input id="content-search" type="search" placeholder="Search by keyword (typos and partial words are OK)">
+                </label>
+                <p class="admin-lede" id="content-field-count">Loading page text...</p>
+              </div>
+              <div class="content-editor-fields" id="content-editor-fields" aria-live="polite"></div>
+            </section>
+            <section class="content-image-editor content-category-panel" id="content-images-panel" role="tabpanel" aria-labelledby="content-images-tab" hidden>
+              <div class="content-image-editor-heading">
+                <div><h3 id="content-image-title">Page images</h3><p class="admin-lede">Upload a replacement photo and update its alternative text.</p></div>
+              </div>
+              <p class="admin-empty" id="content-image-empty" hidden></p>
+              <div class="content-image-list" id="content-image-list"></div>
+            </section>
+            <section class="content-added-editor content-category-panel" id="content-sections-panel" role="tabpanel" aria-labelledby="content-sections-tab" hidden>
+              <div class="admin-toolbar">
+                <div>
+                  <h3 id="content-added-title">Additional sections</h3>
+                  <p class="admin-lede">New sections appear after the page’s existing content. Set their alignment and choose how multiple sections are arranged.</p>
+                </div>
+                <button class="admin-button-secondary" id="add-content-section" type="button">Add section <span aria-hidden="true">+</span></button>
+              </div>
+              <div class="content-added-settings">
+                <label for="content-section-layout">Multiple sections layout
+                  <select id="content-section-layout">
+                    <option value="stacked">Stacked — one per row</option>
+                    <option value="grid">Two columns — side by side</option>
+                  </select>
+                </label>
+                <p class="admin-lede">On small screens, sections always stack for readability.</p>
+              </div>
+              <div class="content-added-list" id="content-added-list"></div>
+            </section>
           </div>
-          <div class="content-added-settings">
-            <label for="content-section-layout">Multiple sections layout
-              <select id="content-section-layout">
-                <option value="stacked">Stacked — one per row</option>
-                <option value="grid">Two columns — side by side</option>
-              </select>
-            </label>
-            <p class="admin-lede">On small screens, sections always stack for readability.</p>
-          </div>
-          <div class="content-added-list" id="content-added-list"></div>
-        </section>
+        </div>
       </section>
     </section>
   </main>
