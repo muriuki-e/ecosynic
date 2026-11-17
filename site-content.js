@@ -99,6 +99,7 @@
       wrapper.className = 'site-long-text';
       paragraph.parentNode.insertBefore(wrapper, paragraph);
       wrapper.append(paragraph);
+      paragraph.closest('.hero')?.classList.add('has-expandable-text');
 
       const toggle = document.createElement('button');
       toggle.type = 'button';

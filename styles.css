@@ -49,7 +49,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -188,6 +188,11 @@ button, a {
   overflow: hidden;
   color: white;
   background: #293a2e;
+}
+.hero.has-expandable-text {
+  height: auto;
+  max-height: none;
+  overflow: visible;
 }
 .hero-slider, .hero-shade {
   position: absolute;
@@ -5760,6 +5765,7 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 }
 .site-long-text-copy.is-expanded {
   max-height: none;
+  overflow: visible;
 }
 .site-long-text-toggle {
   margin-top: 8px;
@@ -6777,4 +6783,8 @@ html[data-theme="dark"] .article-admin-actions .admin-button-secondary:last-chil
   .article-admin-actions button {
     flex: 1;
   }
+}
+
+main p:not(.eyebrow):not(.admin-dialog-kicker) {
+  font-size: max(1rem, 1em);
 }
