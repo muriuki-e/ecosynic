@@ -194,6 +194,9 @@ button, a {
   max-height: none;
   overflow: visible;
 }
+.hero .site-long-text {
+  margin-bottom: 20px;
+}
 .hero-slider, .hero-shade {
   position: absolute;
   inset: 0;
@@ -5769,24 +5772,25 @@ html[data-theme="dark"] .newsletter-campaign-form textarea {
 }
 .site-long-text-toggle {
   margin-top: 8px;
-  padding: 2px 0;
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
   border: 0;
-  color: var(--green, #344b36);
-  background: transparent;
-  font: 700 12px/1.5 var(--sans);
-  text-decoration: underline;
-  text-decoration-color: rgba(52, 75, 54, .35);
-  text-underline-offset: 3px;
+  border-radius: 4px;
+  color: #20281d;
+  background: var(--lime, #d8ee70);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .16);
+  font: 700 13px/1.5 var(--sans);
   cursor: pointer;
+  transition: background .18s, box-shadow .18s;
 }
 .site-long-text-toggle:hover {
-  color: var(--orange, #e3754e);
-  text-decoration-color: currentColor;
+  background: #c9df5d;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, .22);
 }
 .site-long-text-toggle:focus-visible {
   outline: 2px solid var(--orange, #e3754e);
   outline-offset: 3px;
-  border-radius: 2px;
 }
 html[data-theme="dark"] .content-editor-toolbar {
   border-color: #485443;
@@ -5914,10 +5918,6 @@ html[data-theme="dark"] .content-category-tab:hover {
 html[data-theme="dark"] .content-category-tab.is-active {
   color: #eff4e8;
   background: #536b49;
-}
-html[data-theme="dark"] .site-long-text-toggle {
-  color: #d8e7c7;
-  text-decoration-color: rgba(216, 231, 199, .5);
 }
 @media (max-width: 760px) {
   .content-workspace {
