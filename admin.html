@@ -46,6 +46,7 @@
     <a href="#content-management" data-admin-section="content-management">Website content</a>
     <a href="#site-controls" data-admin-section="site-controls">Site controls</a>
     <a href="#newsletter-management" data-admin-section="newsletter-management">Newsletter</a>
+    <button class="admin-check-nav-button" id="run-admin-checks" type="button">Test functions</button>
   </nav>
   <main class="admin-main">
     <section class="admin-login" id="admin-login" aria-labelledby="login-title">
@@ -69,6 +70,19 @@
         <h1 id="dashboard-title">Your workspace</h1>
         <p class="admin-lede">Manage your team, publish articles and events, and keep subscribers up to date.</p>
       </div>
+      <section class="admin-system-checks" aria-labelledby="admin-system-checks-title">
+        <div class="admin-system-checks-heading">
+          <div>
+            <p class="admin-dialog-kicker">SERVICE HEALTH</p>
+            <h2 id="admin-system-checks-title">System checks</h2>
+            <p class="admin-lede">Check core pages, data services and email connectivity. These checks do not change content or send email.</p>
+          </div>
+        </div>
+        <div class="admin-system-check-results" id="admin-check-results" hidden aria-live="polite">
+          <ul class="admin-system-check-list" id="admin-check-list"></ul>
+          <p class="admin-system-check-summary" id="admin-check-summary"></p>
+        </div>
+      </section>
       <p class="admin-notice" id="storage-notice" hidden></p>
       <section class="admin-panel" id="site-controls" aria-labelledby="site-controls-title" hidden>
         <div class="admin-section-heading">
@@ -243,7 +257,7 @@
             <div class="newsletter-compose-icon" aria-hidden="true">✳</div>
             <p class="admin-dialog-kicker">A NOTE FROM ECOSYNIC</p>
             <h3>Compose a newsletter</h3>
-            <p class="newsletter-compose-lede">Your message goes separately to every active subscriber, and is also posted to the Ecosynic Africa Facebook Page. Addresses stay private, and each email includes an unsubscribe link.</p>
+            <p class="newsletter-compose-lede">Your message goes separately to every active subscriber with an Ecosynic-branded image header and readable email text. It is also posted to the Ecosynic Africa Facebook Page. Addresses stay private, and each email includes an unsubscribe link.</p>
             <label for="campaign-subject">Subject
               <input id="campaign-subject" name="subject" maxlength="150" placeholder="A clear, welcoming subject" required>
             </label>

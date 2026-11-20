@@ -1,5 +1,9 @@
 const loginPanel = document.querySelector('#admin-login');
 const dashboard = document.querySelector('#admin-dashboard');
+const runAdminChecksButton = document.querySelector('#run-admin-checks');
+const adminCheckResults = document.querySelector('#admin-check-results');
+const adminCheckList = document.querySelector('#admin-check-list');
+const adminCheckSummary = document.querySelector('#admin-check-summary');
 const loginForm = document.querySelector('#login-form');
 const loginError = document.querySelector('#login-error');
 const logoutButton = document.querySelector('#admin-logout');
@@ -134,6 +138,122 @@ async function api(path, options = {}) {
   if (!response.ok) throw new Error(data.error || 'The request could not be completed.');
   return data;
 }
+
+const adminSystemChecks = [
+  {
+    label: 'Admin session',
+    run: async () => {
+      const state = await api('/api/admin');
+      if (!state.authenticated) throw new Error('Admin session is not active.');
+    },
+  },
+  {
+    label: 'Public website',
+    run: async () => {
+      const response = await fetch('/home', { credentials: 'same-origin' });
+      if (!response.ok) throw new Error(`Page returned HTTP ${response.status}.`);
+      const html = await response.text();
+      if (!html.includes('<title>')) throw new Error('Page response did not contain a title.');
+    },
+  },
+  {
+    label: 'Team profiles',
+    run: async () => {
+      const data = await api('/api/team');
+      if (!Array.isArray(data.profiles)) throw new Error('Team profile data is unavailable.');
+    },
+  },
+  {
+    label: 'Photo gallery',
+    run: async () => {
+      const data = await api('/api/gallery');
+      if (!Array.isArray(data.images)) throw new Error('Gallery data is unavailable.');
+    },
+  },
+  {
+    label: 'Articles and news',
+    run: async () => {
+      const data = await api('/api/articles');
+      if (!Array.isArray(data.articles)) throw new Error('Article data is unavailable.');
+    },
+  },
+  {
+    label: 'Website content',
+    run: async () => {
+      const data = await api('/api/content');
+      if (!data || typeof data.overrides !== 'object' || typeof data.sections !== 'object') {
+        throw new Error('Website content data is unavailable.');
+      }
+    },
+  },
+  {
+    label: 'Newsletter subscribers',
+    run: async () => {
+      const data = await api('/api/newsletter?action=admin');
+      if (!Array.isArray(data.subscribers) || typeof data.activeCount !== 'number') {
+        throw new Error('Newsletter subscriber data is unavailable.');
+      }
+    },
+  },
+  {
+    label: 'SMTP connection',
+    run: async () => {
+      await api('/api/newsletter?action=admin&check=smtp');
+    },
+  },
+];
+
+function createAdminCheckRow(label) {
+  const row = document.createElement('li');
+  row.className = 'admin-system-check';
+  row.dataset.state = 'checking';
+  const indicator = document.createElement('span');
+  indicator.className = 'admin-system-check-indicator';
+  indicator.setAttribute('aria-hidden', 'true');
+  const name = document.createElement('span');
+  name.className = 'admin-system-check-name';
+  name.textContent = label;
+  const status = document.createElement('span');
+  status.className = 'admin-system-check-status';
+  status.textContent = 'Checking...';
+  row.append(indicator, name, status);
+  return { row, status };
+}
+
+async function runAdminSystemChecks() {
+  runAdminChecksButton.disabled = true;
+  runAdminChecksButton.textContent = 'Checking...';
+  adminCheckResults.hidden = false;
+  adminCheckResults.setAttribute('aria-busy', 'true');
+  adminCheckSummary.textContent = 'Checking core services...';
+  adminCheckList.replaceChildren();
+
+  const rows = adminSystemChecks.map((check) => {
+    const row = createAdminCheckRow(check.label);
+    adminCheckList.append(row.row);
+    return row;
+  });
+
+  const results = await Promise.all(adminSystemChecks.map(async (check, index) => {
+    try {
+      await check.run();
+      rows[index].row.dataset.state = 'passed';
+      rows[index].status.textContent = 'Working';
+      return true;
+    } catch (error) {
+      rows[index].row.dataset.state = 'failed';
+      rows[index].status.textContent = error.message;
+      return false;
+    }
+  }));
+  const passed = results.filter(Boolean).length;
+  adminCheckSummary.textContent = `${passed} of ${results.length} checks passed.`;
+  adminCheckResults.setAttribute('aria-busy', 'false');
+  runAdminChecksButton.disabled = false;
+  runAdminChecksButton.textContent = 'Run checks again';
+}
+
+runAdminChecksButton.addEventListener('click', runAdminSystemChecks);
 
 function showDashboard(storageReady) {
   loginPanel.hidden = true;
