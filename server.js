@@ -107,6 +107,7 @@ const publicFiles = new Set([
   'sitemap.xml',
   'favicon.png',
   'Ecosynic Africa Shield Logo.png',
+  'images/santa-hat.svg',
   'images/WhatsApp Image 2026-10-14 at 8.37.51 PM.jpeg',
   'images/WhatsApp Image 2026-10-14 at 8.37.52 PM.jpeg',
   'images/WhatsApp Image 2026-10-14 at 8.37.53 PM (1).jpeg',
@@ -483,7 +484,7 @@ function serveStatic(url, response) {
   }
 
   const filePath = path.join(ROOT, requested);
-  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : requested.endsWith('.xml') ? 'application/xml; charset=utf-8' : requested.endsWith('.txt') ? 'text/plain; charset=utf-8' : requested.endsWith('.png') ? 'image/png' : requested.endsWith('.jpeg') ? 'image/jpeg' : 'text/javascript; charset=utf-8';
+  const contentType = requested.endsWith('.html') ? 'text/html; charset=utf-8' : requested.endsWith('.css') ? 'text/css; charset=utf-8' : requested.endsWith('.xml') ? 'application/xml; charset=utf-8' : requested.endsWith('.txt') ? 'text/plain; charset=utf-8' : requested.endsWith('.svg') ? 'image/svg+xml' : requested.endsWith('.png') ? 'image/png' : requested.endsWith('.jpeg') ? 'image/jpeg' : 'text/javascript; charset=utf-8';
   response.writeHead(200, {
     'Content-Type': contentType,
     'X-Content-Type-Options': 'nosniff',

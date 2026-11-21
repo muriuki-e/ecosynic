@@ -4,17 +4,24 @@ const staffGroup = document.querySelector('#staff-group');
 const staffList = document.querySelector('#staff-list');
 const teamCount = document.querySelector('#staff-count');
 const teamStatus = document.querySelector('#staff-status');
+const photoDialog = document.querySelector('#team-photo-dialog');
+const photoDialogImage = document.querySelector('#team-photo-dialog-image');
 
 function createTeamCard(profile) {
   const article = document.createElement('article');
   article.className = 'staff-member';
   const figure = document.createElement('figure');
   figure.className = 'staff-photo';
+  const previewButton = document.createElement('button');
+  previewButton.className = 'staff-photo-preview';
+  previewButton.type = 'button';
+  previewButton.setAttribute('aria-label', `View full-size photo of ${profile.name}`);
   const image = document.createElement('img');
   image.src = profile.photoUrl;
   image.alt = `Portrait of ${profile.name}`;
   image.loading = 'lazy';
-  figure.append(image);
+  previewButton.append(image);
+  figure.append(previewButton);
   const info = document.createElement('div');
   info.className = 'staff-member-info';
   const name = document.createElement('h4');
@@ -29,6 +36,23 @@ function createTeamCard(profile) {
   article.append(figure, info);
   return article;
 }
+
+function openPhotoPreview(event) {
+  const button = event.target.closest('.staff-photo-preview');
+  if (!button) return;
+
+  const image = button.querySelector('img');
+  photoDialogImage.src = image.src;
+  photoDialogImage.alt = image.alt;
+  photoDialog.showModal();
+}
+
+document.querySelector('#board-list').addEventListener('click', openPhotoPreview);
+document.querySelector('#staff-list').addEventListener('click', openPhotoPreview);
+document.querySelector('#close-team-photo-dialog').addEventListener('click', () => photoDialog.close());
+photoDialog.addEventListener('click', (event) => {
+  if (event.target === photoDialog) photoDialog.close();
+});
 
 async function loadTeam() {
   try {

@@ -10,8 +10,10 @@ const logoutButton = document.querySelector('#admin-logout');
 const themeToggle = document.querySelector('#admin-theme-toggle');
 const sectionNav = document.querySelector('#admin-section-nav');
 const maintenanceToggle = document.querySelector('#maintenance-toggle');
+const festiveSeasonToggle = document.querySelector('#festive-season-toggle');
 const siteKillSwitch = document.querySelector('#site-kill-switch');
 const siteControlStatus = document.querySelector('#site-control-status');
+const festiveSeasonStatus = document.querySelector('#festive-season-status');
 const contentPageSearch = document.querySelector('#content-page-search');
 const contentPageList = document.querySelector('#content-page-list');
 const contentPageNavHint = document.querySelector('#content-page-nav-hint');
@@ -98,6 +100,7 @@ let subscribers = [];
 let galleryImages = [];
 let articles = [];
 let editingArticleId = null;
+let festiveSeasonActive = false;
 let articleImage = null;
 let articleImagePreviewUrl = '';
 let editingId = null;
@@ -284,7 +287,15 @@ function setAdminSection(sectionId) {
   });
 }
 
-function updateSiteControls(mode) {
+function updateFestiveSeason(active) {
+  festiveSeasonActive = active === true;
+  festiveSeasonToggle.setAttribute('aria-checked', String(festiveSeasonActive));
+  festiveSeasonStatus.textContent = festiveSeasonActive
+    ? 'Festive accents are showing on the public website.'
+    : 'Festive accents are off.';
+}
+
+function updateSiteControls(mode, festiveSeason) {
   siteMode = mode;
   maintenanceToggle.setAttribute('aria-checked', String(mode === 'maintenance'));
   siteKillSwitch.textContent = mode === 'offline' ? 'Restore website' : 'Activate kill switch';
@@ -294,22 +305,30 @@ function updateSiteControls(mode) {
     : mode === 'offline'
       ? 'The kill switch is on. Visitors see the temporarily unavailable page.'
       : 'The public website is live.';
+  updateFestiveSeason(festiveSeason);
+}
+
+function setSiteControlsDisabled(disabled) {
+  maintenanceToggle.disabled = disabled;
+  festiveSeasonToggle.disabled = disabled;
+  siteKillSwitch.disabled = disabled;
 }
 
 async function loadSiteAvailability() {
   siteControlStatus.textContent = 'Checking website status...';
+  festiveSeasonStatus.textContent = 'Checking festive season setting...';
   try {
     const status = await api('/api/site-status');
-    updateSiteControls(status.mode);
+    updateSiteControls(status.mode, status.festiveSeason);
   } catch (error) {
     siteControlStatus.textContent = error.message;
     siteControlStatus.dataset.mode = 'error';
+    festiveSeasonStatus.textContent = 'Could not load festive season setting.';
   }
 }
 
 async function saveSiteAvailability(mode, secretCode = '') {
-  maintenanceToggle.disabled = true;
-  siteKillSwitch.disabled = true;
+  setSiteControlsDisabled(true);
   siteControlStatus.textContent = 'Updating website status...';
   try {
     const status = await api('/api/site-status', {
@@ -317,19 +336,40 @@ async function saveSiteAvailability(mode, secretCode = '') {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode, ...(mode === 'offline' || secretCode ? { secretCode } : {}) }),
     });
-    updateSiteControls(status.mode);
+    updateSiteControls(status.mode, status.festiveSeason);
     showToast(status.mode === 'online' ? 'The public website is live.' : 'Website status updated.');
   } catch (error) {
     siteControlStatus.textContent = error.message;
     siteControlStatus.dataset.mode = 'error';
   } finally {
-    maintenanceToggle.disabled = false;
-    siteKillSwitch.disabled = false;
+    setSiteControlsDisabled(false);
+  }
+}
+
+async function saveFestiveSeason(active) {
+  setSiteControlsDisabled(true);
+  festiveSeasonStatus.textContent = 'Updating festive season setting...';
+  try {
+    const status = await api('/api/site-status', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ festiveSeason: active }),
+    });
+    updateSiteControls(status.mode, status.festiveSeason);
+    showToast(active ? 'Festive season accents enabled.' : 'Festive season accents disabled.');
+  } catch (error) {
+    festiveSeasonStatus.textContent = error.message;
+  } finally {
+    setSiteControlsDisabled(false);
   }
 }
 
 maintenanceToggle.addEventListener('click', () => {
   saveSiteAvailability(siteMode === 'maintenance' ? 'online' : 'maintenance');
+});
+
+festiveSeasonToggle.addEventListener('click', () => {
+  saveFestiveSeason(!festiveSeasonActive);
 });
 
 siteKillSwitch.addEventListener('click', () => {

@@ -7,7 +7,8 @@
       if (!response.ok) throw new Error('Could not load site status.');
       return response.json();
     })
-    .then(({ mode }) => {
+    .then(({ mode, festiveSeason }) => {
+      document.documentElement.classList.toggle('festive-season', festiveSeason === true);
       if (mode === 'maintenance' || mode === 'offline') {
         location.replace(`/availability?mode=${encodeURIComponent(mode)}`);
       }

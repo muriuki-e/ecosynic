@@ -123,6 +123,29 @@ button, a {
   font-weight: 600;
   letter-spacing: .14em;
 }
+html.festive-season .brand {
+  position: relative;
+}
+html.festive-season .brand::after {
+  position: absolute;
+  top: 0;
+  left: 9px;
+  z-index: 1;
+  width: 31px;
+  height: 27px;
+  background: url('images/santa-hat.svg') center / contain no-repeat;
+  content: "";
+  pointer-events: none;
+}
+html.festive-season main h1::after {
+  width: clamp(20px, 2.8vw, 34px);
+  height: clamp(18px, 2.5vw, 30px);
+  margin-left: .12em;
+  display: inline-block;
+  background: url('images/santa-hat.svg') center / contain no-repeat;
+  content: "";
+  vertical-align: .48em;
+}
 .primary-nav {
   display: flex;
   align-items: center;
@@ -3146,6 +3169,19 @@ html[data-theme="dark"] .advisor-error {
   display: block;
   object-fit: cover;
 }
+.staff-photo-preview {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: block;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.staff-photo-preview:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: -3px;
+}
 .staff-photo figcaption {
   position: absolute;
   right: 12px;
@@ -3156,6 +3192,47 @@ html[data-theme="dark"] .advisor-error {
   font-size: 8px;
   font-weight: 700;
   letter-spacing: .08em;
+}
+.team-photo-dialog {
+  position: relative;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 42px 12px 12px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 24px 80px rgba(13, 25, 18, .32);
+}
+.team-photo-dialog::backdrop {
+  background: rgba(18, 29, 21, .72);
+  backdrop-filter: blur(3px);
+}
+.team-photo-dialog img {
+  max-width: 100%;
+  max-height: calc(100dvh - 96px);
+  display: block;
+  object-fit: contain;
+}
+.team-photo-dialog-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+.team-photo-dialog-close:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 2px;
 }
 .staff-member-info {
   min-height: 132px;
