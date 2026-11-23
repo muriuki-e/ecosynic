@@ -1,6 +1,8 @@
 const loginPanel = document.querySelector('#admin-login');
 const dashboard = document.querySelector('#admin-dashboard');
 const runAdminChecksButton = document.querySelector('#run-admin-checks');
+const adminCheckDialog = document.querySelector('#admin-check-dialog');
+const closeAdminChecksButton = document.querySelector('#close-admin-checks');
 const adminCheckResults = document.querySelector('#admin-check-results');
 const adminCheckList = document.querySelector('#admin-check-list');
 const adminCheckSummary = document.querySelector('#admin-check-summary');
@@ -63,6 +65,21 @@ const newsletterAdminError = document.querySelector('#newsletter-admin-error');
 const newsletterCampaignForm = document.querySelector('#newsletter-campaign-form');
 const newsletterCampaignStatus = document.querySelector('#newsletter-campaign-status');
 const sendNewsletterButton = document.querySelector('#send-newsletter');
+const inboxUnreadCount = document.querySelector('#inbox-unread-count');
+const inboxNavCount = document.querySelector('#inbox-nav-count');
+const inboxAdminError = document.querySelector('#inbox-admin-error');
+const inboxConversationList = document.querySelector('#inbox-conversation-list');
+const inboxThread = document.querySelector('#inbox-thread');
+const inboxMessageTotal = document.querySelector('#inbox-message-total');
+const inboxSearch = document.querySelector('#inbox-search');
+const inboxFilters = document.querySelector('.inbox-filters');
+const refreshInboxButton = document.querySelector('#refresh-inbox');
+const markAllReadButton = document.querySelector('#mark-all-read');
+const inboxConfirmDialog = document.querySelector('#inbox-confirm-dialog');
+const inboxConfirmTitle = document.querySelector('#inbox-confirm-title');
+const inboxConfirmMessage = document.querySelector('#inbox-confirm-message');
+const inboxConfirmCancelButton = document.querySelector('#inbox-confirm-cancel');
+const inboxConfirmSubmitButton = document.querySelector('#inbox-confirm-submit');
 const galleryUploadForm = document.querySelector('#gallery-upload-form');
 const galleryPhotoInput = document.querySelector('#gallery-photo');
 const galleryPhotoDropzone = document.querySelector('#gallery-photo-dropzone');
@@ -97,6 +114,10 @@ const cancelArticleEditButton = document.querySelector('#cancel-article-edit');
 
 let profiles = [];
 let subscribers = [];
+let inboxMessages = [];
+let selectedInboxMessageId = null;
+let inboxFilter = 'all';
+let pendingInboxAction = null;
 let galleryImages = [];
 let articles = [];
 let editingArticleId = null;
@@ -199,6 +220,15 @@ const adminSystemChecks = [
     },
   },
   {
+    label: 'Admin inbox',
+    run: async () => {
+      const data = await api('/api/inbox');
+      if (!Array.isArray(data.inquiries) || typeof data.unreadCount !== 'number') {
+        throw new Error('Inbox message data is unavailable.');
+      }
+    },
+  },
+  {
     label: 'SMTP connection',
     run: async () => {
       await api('/api/newsletter?action=admin&check=smtp');
@@ -253,10 +283,14 @@ async function runAdminSystemChecks() {
   adminCheckSummary.textContent = `${passed} of ${results.length} checks passed.`;
   adminCheckResults.setAttribute('aria-busy', 'false');
   runAdminChecksButton.disabled = false;
-  runAdminChecksButton.textContent = 'Run checks again';
+  runAdminChecksButton.textContent = 'Test functions';
 }
 
-runAdminChecksButton.addEventListener('click', runAdminSystemChecks);
+runAdminChecksButton.addEventListener('click', () => {
+  adminCheckDialog.showModal();
+  runAdminSystemChecks();
+});
+closeAdminChecksButton.addEventListener('click', () => adminCheckDialog.close());
 
 function showDashboard(storageReady) {
   loginPanel.hidden = true;
@@ -264,10 +298,11 @@ function showDashboard(storageReady) {
   sectionNav.hidden = false;
   logoutButton.classList.add('is-visible');
   storageNotice.hidden = storageReady;
-  storageNotice.textContent = storageReady ? '' : 'Team profiles, gallery photos, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
+  storageNotice.textContent = storageReady ? '' : 'Team profiles, gallery photos, inbox messages, newsletter data and website content need a Vercel Blob store. Create and connect one in your Vercel project Storage settings.';
   const requestedSection = location.hash.slice(1);
-  setAdminSection(['gallery-management', 'articles-management', 'content-management', 'site-controls', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'team-management');
+  setAdminSection(['inbox-management', 'gallery-management', 'articles-management', 'content-management', 'site-controls', 'newsletter-management'].includes(requestedSection) ? requestedSection : 'inbox-management');
   loadSiteAvailability();
+  loadInbox();
   loadProfiles();
   loadGallery();
   loadArticles();
@@ -981,6 +1016,14 @@ logoutButton.addEventListener('click', async () => {
     articleAdminList.replaceChildren();
     articleCount.textContent = 'Sign in to manage articles and events.';
     resetArticleForm();
+    inboxMessages = [];
+    selectedInboxMessageId = null;
+    inboxConversationList.replaceChildren();
+    inboxThread.replaceChildren();
+    inboxUnreadCount.textContent = 'Sign in to load inbox messages.';
+    inboxNavCount.hidden = true;
+    markAllReadButton.disabled = true;
+    inboxMessageTotal.textContent = '0';
     subscribers = [];
     subscriberList.replaceChildren();
     subscriberCount.textContent = 'Sign in to load subscribers.';
@@ -991,6 +1034,24 @@ logoutButton.addEventListener('click', async () => {
 document.querySelector('#new-profile').addEventListener('click', () => openForm());
 document.querySelector('#cancel-profile').addEventListener('click', closeForm);
 document.querySelector('#refresh-subscribers').addEventListener('click', loadSubscribers);
+refreshInboxButton.addEventListener('click', loadInbox);
+markAllReadButton.addEventListener('click', markAllInboxMessagesRead);
+inboxSearch.addEventListener('input', renderInboxMessages);
+inboxFilters.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-inbox-filter]');
+  if (!button) return;
+  inboxFilter = button.dataset.inboxFilter;
+  inboxFilters.querySelectorAll('button').forEach((filterButton) => {
+    const active = filterButton === button;
+    filterButton.classList.toggle('is-active', active);
+    filterButton.setAttribute('aria-pressed', String(active));
+  });
+  renderInboxMessages();
+});
+inboxConversationList.addEventListener('click', (event) => {
+  const conversation = event.target.closest('button[data-inbox-id]');
+  if (conversation) openInboxConversation(conversation.dataset.inboxId);
+});
 
 galleryPhotoInput.addEventListener('change', () => {
   galleryPhotoTitle.textContent = galleryPhotoInput.files?.[0]?.name || 'Browse or drag an image here';
@@ -1410,6 +1471,262 @@ newsletterCampaignForm.addEventListener('submit', (event) => {
     run: () => sendNewsletter(campaign),
   });
 });
+
+async function loadInbox() {
+  inboxAdminError.textContent = '';
+  inboxUnreadCount.textContent = 'Loading inbox...';
+  refreshInboxButton.disabled = true;
+  try {
+    const result = await api('/api/inbox');
+    inboxMessages = result.inquiries;
+    renderInboxMessages();
+  } catch (error) {
+    inboxUnreadCount.textContent = 'Inbox unavailable';
+    inboxAdminError.textContent = error.message;
+    inboxConversationList.replaceChildren();
+    inboxThread.replaceChildren();
+    inboxNavCount.hidden = true;
+    markAllReadButton.disabled = true;
+  } finally {
+    refreshInboxButton.disabled = false;
+  }
+}
+
+function renderInboxMessages() {
+  inboxConversationList.replaceChildren();
+  const unreadCount = inboxMessages.filter((message) => !message.isRead).length;
+  inboxUnreadCount.textContent = `${unreadCount} unread · ${inboxMessages.length} total`;
+  inboxMessageTotal.textContent = String(inboxMessages.length);
+  inboxNavCount.textContent = String(unreadCount);
+  inboxNavCount.hidden = unreadCount === 0;
+  markAllReadButton.disabled = unreadCount === 0;
+
+  const search = inboxSearch.value.trim().toLowerCase();
+  const visibleMessages = [...inboxMessages]
+    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))
+    .filter((message) => (inboxFilter !== 'unread' || !message.isRead)
+      && (!search || [message.name, message.email, message.inquiry, message.message].some((value) => value.toLowerCase().includes(search))));
+
+  if (!visibleMessages.length) {
+    const empty = document.createElement('p');
+    empty.className = 'inbox-list-empty';
+    empty.textContent = inboxMessages.length ? 'No conversations match your search.' : 'Your inbox is empty.';
+    inboxConversationList.append(empty);
+  }
+
+  visibleMessages.forEach((message) => {
+    const conversation = document.createElement('button');
+    conversation.type = 'button';
+    conversation.className = `inbox-conversation${message.id === selectedInboxMessageId ? ' is-selected' : ''}${message.isRead ? '' : ' is-unread'}`;
+    conversation.dataset.inboxId = message.id;
+    conversation.setAttribute('aria-current', String(message.id === selectedInboxMessageId));
+    const avatar = document.createElement('span');
+    avatar.className = 'inbox-avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = message.name.trim().charAt(0).toUpperCase();
+    const copy = document.createElement('span');
+    copy.className = 'inbox-conversation-copy';
+    const firstLine = document.createElement('span');
+    firstLine.className = 'inbox-conversation-first-line';
+    const name = document.createElement('span');
+    name.className = 'inbox-conversation-name';
+    name.textContent = message.name;
+    const date = document.createElement('time');
+    date.className = 'inbox-conversation-date';
+    date.dateTime = message.createdAt;
+    date.textContent = inboxShortDate(message.createdAt);
+    firstLine.append(name, date);
+    const preview = document.createElement('span');
+    preview.className = 'inbox-conversation-preview';
+    preview.textContent = `${message.inquiry} · ${message.message.replace(/\s+/g, ' ')}`;
+    copy.append(firstLine, preview);
+    conversation.append(avatar, copy);
+    if (!message.isRead) {
+      const unread = document.createElement('span');
+      unread.className = 'inbox-unread-dot';
+      unread.setAttribute('aria-label', 'Unread');
+      conversation.append(unread);
+    }
+    inboxConversationList.append(conversation);
+  });
+
+  const selected = inboxMessages.find((message) => message.id === selectedInboxMessageId);
+  renderInboxThread(selected);
+}
+
+function inboxShortDate(value) {
+  const date = new Date(value);
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  if (date.getFullYear() === today.getFullYear()) {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+  return date.toLocaleDateString([], { year: '2-digit', month: 'short', day: 'numeric' });
+}
+
+function renderInboxThread(message) {
+  inboxThread.replaceChildren();
+  if (!message) {
+    const empty = document.createElement('div');
+    empty.className = 'inbox-thread-empty';
+    const icon = document.createElement('span');
+    icon.className = 'inbox-empty-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '✉';
+    const heading = document.createElement('h3');
+    heading.textContent = inboxMessages.length ? 'Select a conversation' : 'Your inbox is empty';
+    const description = document.createElement('p');
+    description.textContent = inboxMessages.length ? 'Choose a message to read and reply.' : 'Website contact form messages will appear here.';
+    empty.append(icon, heading, description);
+    inboxThread.append(empty);
+    return;
+  }
+
+  const header = document.createElement('header');
+  header.className = 'inbox-thread-header';
+  const sender = document.createElement('div');
+  sender.className = 'inbox-thread-sender';
+  const avatar = document.createElement('span');
+  avatar.className = 'inbox-avatar inbox-thread-avatar';
+  avatar.setAttribute('aria-hidden', 'true');
+  avatar.textContent = message.name.trim().charAt(0).toUpperCase();
+  const identity = document.createElement('div');
+  const name = document.createElement('h3');
+  name.textContent = message.name;
+  const email = document.createElement('a');
+  email.href = `mailto:${message.email}`;
+  email.textContent = message.email;
+  identity.append(name, email);
+  sender.append(avatar, identity);
+
+  const actions = document.createElement('div');
+  actions.className = 'inbox-thread-actions';
+  const readButton = document.createElement('button');
+  readButton.className = 'admin-button-secondary';
+  readButton.type = 'button';
+  readButton.textContent = message.isRead ? 'Mark unread' : 'Mark as read';
+  readButton.addEventListener('click', () => requestInboxConfirmation({
+    title: message.isRead ? 'Mark as unread?' : 'Mark as read?',
+    message: message.isRead
+      ? `Mark the message from ${message.name} as unread?`
+      : `Mark the message from ${message.name} as read?`,
+    actionLabel: message.isRead ? 'Mark unread' : 'Mark as read',
+    run: () => setInboxMessageRead(message.id, !message.isRead),
+  }));
+  const deleteButton = document.createElement('button');
+  deleteButton.className = 'inbox-delete-button';
+  deleteButton.type = 'button';
+  deleteButton.textContent = 'Delete';
+  deleteButton.addEventListener('click', () => requestInboxConfirmation({
+    title: 'Delete this message?',
+    message: `Delete the message from ${message.name}? This cannot be undone.`,
+    actionLabel: 'Delete message',
+    danger: true,
+    run: () => deleteInboxMessage(message.id),
+  }));
+  actions.append(readButton, deleteButton);
+  header.append(sender, actions);
+
+  const content = document.createElement('div');
+  content.className = 'inbox-thread-content';
+  const subject = document.createElement('p');
+  subject.className = 'inbox-thread-subject';
+  subject.textContent = message.inquiry;
+  const timestamp = document.createElement('time');
+  timestamp.className = 'inbox-thread-date';
+  timestamp.dateTime = message.createdAt;
+  timestamp.textContent = new Date(message.createdAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' });
+  const bubble = document.createElement('article');
+  bubble.className = 'inbox-message-bubble';
+  const body = document.createElement('p');
+  body.textContent = message.message;
+  bubble.append(body);
+  const reply = document.createElement('a');
+  reply.className = 'inbox-reply-button';
+  reply.href = `mailto:${message.email}?subject=${encodeURIComponent(`Re: ${message.inquiry}`)}`;
+  reply.textContent = 'Reply';
+  content.append(subject, timestamp, bubble, reply);
+  inboxThread.append(header, content);
+}
+
+function openInboxConversation(id) {
+  selectedInboxMessageId = id;
+  renderInboxMessages();
+}
+
+function requestInboxConfirmation({ title, message, actionLabel, danger = false, run }) {
+  pendingInboxAction = run;
+  inboxConfirmTitle.textContent = title;
+  inboxConfirmMessage.textContent = message;
+  inboxConfirmSubmitButton.textContent = actionLabel;
+  inboxConfirmSubmitButton.classList.toggle('is-danger', danger);
+  inboxConfirmDialog.showModal();
+  inboxConfirmCancelButton.focus();
+}
+
+async function setInboxMessageRead(id, isRead) {
+  inboxAdminError.textContent = '';
+  try {
+    const result = await api('/api/inbox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: isRead ? 'mark-read' : 'mark-unread', id }),
+    });
+    inboxMessages = result.inquiries;
+    renderInboxMessages();
+  } catch (error) {
+    inboxAdminError.textContent = error.message;
+  }
+}
+
+inboxConfirmSubmitButton.addEventListener('click', async () => {
+  const action = pendingInboxAction;
+  pendingInboxAction = null;
+  inboxConfirmDialog.close();
+  if (action) await action();
+});
+inboxConfirmCancelButton.addEventListener('click', () => inboxConfirmDialog.close());
+inboxConfirmDialog.addEventListener('close', () => {
+  pendingInboxAction = null;
+  inboxConfirmSubmitButton.classList.remove('is-danger');
+});
+
+async function deleteInboxMessage(id) {
+  inboxAdminError.textContent = '';
+  try {
+    await api('/api/inbox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    inboxMessages = inboxMessages.filter((message) => message.id !== id);
+    selectedInboxMessageId = inboxMessages[0]?.id || null;
+    renderInboxMessages();
+    showToast('Inbox message deleted.');
+  } catch (error) {
+    inboxAdminError.textContent = error.message;
+  }
+}
+
+async function markAllInboxMessagesRead() {
+  inboxAdminError.textContent = '';
+  markAllReadButton.disabled = true;
+  try {
+    const result = await api('/api/inbox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'mark-all-read' }),
+    });
+    inboxMessages = result.inquiries;
+    renderInboxMessages();
+    showToast('All inbox messages marked as read.');
+  } catch (error) {
+    inboxAdminError.textContent = error.message;
+    markAllReadButton.disabled = false;
+  }
+}
 
 async function loadSubscribers() {
   newsletterAdminError.textContent = '';

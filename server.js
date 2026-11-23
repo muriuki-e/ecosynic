@@ -2,74 +2,17 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const { GoogleGenAI } = require('@google/genai');
-const nodemailer = require('nodemailer');
-const { handleAdmin, handleArticles, handleArticleImage, handleContent, handleContentImage, handleGallery, handleGalleryPhoto, handleSiteStatus, handleTeam, handleTeamPhoto } = require('./lib/team-api');
+const { createInquiry, handleAdmin, handleArticles, handleArticleImage, handleContent, handleContentImage, handleGallery, handleGalleryPhoto, handleInquiries, handleSiteStatus, handleTeam, handleTeamPhoto } = require('./lib/team-api');
 const { handleNewsletter, unsubscribe } = require('./lib/newsletter-api');
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 4173);
 const GEMINI_MODEL = 'gemini-3.8-flash';
-const EMAIL_LOGO_CID = 'ecosynic-africa-logo';
 const MAX_BODY_BYTES = 16_000;
 const CACHE_MS = 10 * 60 * 1000;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
 const rateLimits = new Map();
 const forecastCache = new Map();
-
-function escapeEmailHtml(value) {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character]);
-}
-
-function contactEmailHtml({ name, email, inquiry, message }) {
-  const safeName = escapeEmailHtml(name);
-  const safeEmail = escapeEmailHtml(email);
-  const safeInquiry = escapeEmailHtml(inquiry);
-  const safeMessage = escapeEmailHtml(message).replace(/\r?\n/g, '<br>');
-
-  return `<!doctype html>
-<html lang="en">
-  <body style="margin:0;padding:24px 12px;background:#f2f4ee">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0">A new message was sent through the Ecosynic Africa website.</div>
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px;margin:0 auto;border-collapse:collapse;background:#fff">
-      <tr>
-        <td style="padding:30px 36px;background:#1d2c22">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td style="padding:5px 8px;border-radius:4px;background:#fff">
-                <img src="cid:${EMAIL_LOGO_CID}" width="150" alt="Ecosynic Africa" style="display:block;width:150px;max-width:100%;height:auto;border:0">
-              </td>
-            </tr>
-          </table>
-          <p style="margin:22px 0 8px;color:#d8ee70;font:700 11px/1.4 Arial,sans-serif;letter-spacing:2px">ECOSYNIC AFRICA · GET IN TOUCH</p>
-          <h1 style="margin:0;color:#fff;font:700 28px/1.25 Arial,sans-serif">New website enquiry</h1>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:30px 36px">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse">
-            <tr><td style="padding:8px 0;color:#687062;font:700 12px Arial,sans-serif">From</td><td style="padding:8px 0;color:#20281d;font:14px Arial,sans-serif">${safeName}</td></tr>
-            <tr><td style="padding:8px 0;color:#687062;font:700 12px Arial,sans-serif">Email</td><td style="padding:8px 0;font:14px Arial,sans-serif"><a href="mailto:${safeEmail}" style="color:#344b36">${safeEmail}</a></td></tr>
-            <tr><td style="padding:8px 0;color:#687062;font:700 12px Arial,sans-serif">Enquiry</td><td style="padding:8px 0;color:#20281d;font:14px Arial,sans-serif">${safeInquiry}</td></tr>
-          </table>
-          <h2 style="margin:26px 0 10px;color:#20281d;font:700 16px/1.4 Arial,sans-serif">Message</h2>
-          <p style="margin:0;color:#344137;font:15px/1.75 Arial,sans-serif">${safeMessage}</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:18px 36px;border-top:1px solid #e4e9e1;background:#f8f9f6">
-          <p style="margin:0;color:#687062;font:12px/1.6 Arial,sans-serif">Sent through the Get in touch form on the Ecosynic Africa website.</p>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
-}
 
 const regions = {
   meru: { name: 'Meru, Kenya', latitude: -0.047, longitude: 37.65 },
@@ -347,14 +290,12 @@ async function getAdvice(request, response) {
 
 async function sendInquiry(request, response) {
   if (!allowRequest(request, response, 4)) return;
-
-  const transporter = createSmtpTransport();
-  if (!transporter) {
-    sendJson(response, 503, { error: 'Email is not configured yet. Please contact us by email or phone.' });
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    sendJson(response, 400, { error: 'Please provide valid enquiry details.' });
     return;
   }
 
-  const body = await readJson(request);
   const inquiryTypes = new Set([
     'Partner with Ecosynic',
     'Fund a program',
@@ -375,45 +316,12 @@ async function sendInquiry(request, response) {
   }
 
   try {
-    const logo = await fs.promises.readFile(path.join(ROOT, 'Ecosynic Africa Shield Logo.png'));
-    await transporter.sendMail({
-      from: { name: `${name} via Ecosynic`, address: process.env.MAIL_FROM || process.env.SMTP_USER },
-      to: process.env.MAIL_TO || 'info@ecosynic.or.ke',
-      replyTo: email,
-      subject: `${inquiry} | Website enquiry`,
-      text: `Name: ${name}\nEmail: ${email}\nEnquiry: ${inquiry}\n\n${message}`,
-      html: contactEmailHtml({ name, email, inquiry, message }),
-      attachments: [{
-        filename: 'ecosynic-africa-logo.png',
-        content: logo,
-        contentType: 'image/png',
-        cid: EMAIL_LOGO_CID,
-      }],
-    });
+    await createInquiry({ name, email, inquiry, message });
     sendJson(response, 200, { message: 'Your enquiry has been sent. Thank you for getting in touch.' });
   } catch (error) {
-    console.error(`SMTP contact delivery failed (${error.code || error.name || 'Error'}).`);
-    sendJson(response, 502, { error: 'We could not send your enquiry right now. Please try again later or email info@ecosynic.or.ke.' });
+    console.error(`Contact inbox delivery failed (${error.code || error.name || 'Error'}).`);
+    sendJson(response, 503, { error: 'We could not save your enquiry right now. Please try again later or email info@ecosynic.or.ke.' });
   }
-}
-
-function createSmtpTransport() {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPassword = process.env.SMTP_PASSWORD;
-  if (!smtpHost || !smtpUser || !smtpPassword) return null;
-
-  const port = Number(process.env.SMTP_PORT || 587);
-  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
-  return nodemailer.createTransport({
-    host: smtpHost,
-    port,
-    secure,
-    auth: { user: smtpUser, pass: smtpPassword },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 15_000,
-  });
 }
 
 async function handleContact(request, response) {
@@ -497,6 +405,10 @@ async function handleRequest(request, response) {
   const url = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
   if (url.pathname === '/api/admin') {
     await handleAdmin(request, response);
+    return;
+  }
+  if (url.pathname === '/api/inbox') {
+    await handleInquiries(request, response);
     return;
   }
   if (url.pathname === '/api/team') {
