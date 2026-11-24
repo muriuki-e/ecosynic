@@ -1478,7 +1478,7 @@ h2 em {
   gap: 12px;
   align-items: center;
   color: var(--lime);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .1em;
 }
@@ -1495,12 +1495,12 @@ h2 em {
   max-width: 225px;
   margin: 0 0 17px;
   color: #c7cebf;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.7;
 }
 .footer-summary span {
   color: #96a18e;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .12em;
 }
@@ -1512,13 +1512,13 @@ h2 em {
 .footer-column > span {
   margin-bottom: 5px;
   color: #a6b392;
-  font-size: 7px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .14em;
 }
 .footer-column a {
   color: #d5dacf;
-  font-size: 9px;
+  font-size: 14px;
 }
 .footer-column a:hover {
   color: var(--lime);
@@ -1550,7 +1550,7 @@ h2 em {
   gap: 20px;
   border-top: 1px solid rgba(255,255,255,.16);
   color: #aab4a2;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 .footer-bottom a {
@@ -2600,7 +2600,7 @@ h2 em {
   }
   .footer-bottom {
     flex-wrap: wrap;
-    font-size: 6px;
+    font-size: 9px;
   }
   .footer-bottom > span:nth-child(2) {
     display: none;
