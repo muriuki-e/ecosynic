@@ -16,11 +16,18 @@ function createTeamCard(profile) {
   previewButton.className = 'staff-photo-preview';
   previewButton.type = 'button';
   previewButton.setAttribute('aria-label', `View full-size photo of ${profile.name}`);
+  const backdrop = document.createElement('img');
+  backdrop.className = 'staff-photo-backdrop';
+  backdrop.src = profile.photoUrl;
+  backdrop.alt = '';
+  backdrop.setAttribute('aria-hidden', 'true');
+  backdrop.loading = 'lazy';
   const image = document.createElement('img');
+  image.className = 'staff-photo-image';
   image.src = profile.photoUrl;
   image.alt = `Portrait of ${profile.name}`;
   image.loading = 'lazy';
-  previewButton.append(image);
+  previewButton.append(backdrop, image);
   figure.append(previewButton);
   const info = document.createElement('div');
   info.className = 'staff-member-info';
@@ -41,7 +48,7 @@ function openPhotoPreview(event) {
   const button = event.target.closest('.staff-photo-preview');
   if (!button) return;
 
-  const image = button.querySelector('img');
+  const image = button.querySelector('.staff-photo-image');
   photoDialogImage.src = image.src;
   photoDialogImage.alt = image.alt;
   photoDialog.showModal();
