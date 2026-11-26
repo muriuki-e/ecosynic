@@ -41,6 +41,161 @@ if (footerMain && !footerMain.querySelector('.footer-resources')) {
   footerMain.append(resources);
 }
 
+const resourceNotifications = [
+  {
+    topic: 'REGIONAL SCOPE',
+    title: 'Get to know our region',
+    message: 'Explore the counties at the heart of Ecosynic’s regional focus.',
+    link: 'Explore our focus',
+    href: 'geographic-scope.html',
+  },
+  {
+    topic: 'QUICK ANSWERS',
+    title: 'Curious about Ecosynic?',
+    message: 'Find helpful details about our work, reporting and ways to connect.',
+    link: 'Browse the FAQs',
+    href: 'faq.html',
+  },
+  {
+    topic: 'EMAIL UPDATES',
+    title: 'Good ideas are worth sharing',
+    message: 'Get occasional Ecosynic news and updates delivered to your inbox.',
+    link: 'See email updates',
+    href: 'newsletter.html',
+  },
+  {
+    topic: 'FIELD STORIES',
+    title: 'See climate action in practice',
+    message: 'Explore stories and perspectives from across our work.',
+    link: 'Read our stories',
+    href: 'articles.html',
+  },
+];
+
+let resourceNotificationsMuted = false;
+try {
+  resourceNotificationsMuted = localStorage.getItem('ecosynic-resource-notifications-muted') === 'true';
+} catch {
+  resourceNotificationsMuted = false;
+}
+
+if (primaryNav) {
+  const notification = document.createElement('aside');
+  notification.className = 'resource-notification';
+  notification.setAttribute('role', 'status');
+  notification.setAttribute('aria-label', 'More from Ecosynic');
+  notification.setAttribute('aria-hidden', 'true');
+  notification.hidden = true;
+  notification.innerHTML = `
+    <div class="resource-notification-content">
+      <div class="resource-notification-heading">
+        <span class="resource-notification-icon" aria-hidden="true">e</span>
+        <div>
+          <span class="resource-notification-overline"></span>
+          <h2></h2>
+        </div>
+        <button class="resource-notification-mute" type="button" aria-label="Mute rotating notifications">Mute</button>
+        <button class="resource-notification-close" type="button" aria-label="Dismiss discovery notification">&times;</button>
+      </div>
+      <p></p>
+      <a class="resource-notification-action" href=""><span></span><span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="resource-notification-muted" hidden>
+      <span>Discovery notifications are muted</span>
+      <button class="resource-notification-resume" type="button">Resume</button>
+    </div>
+  `;
+  document.body.append(notification);
+
+  const content = notification.querySelector('.resource-notification-content');
+  const mutedState = notification.querySelector('.resource-notification-muted');
+  const topic = notification.querySelector('.resource-notification-overline');
+  const title = notification.querySelector('h2');
+  const message = notification.querySelector('p');
+  const action = notification.querySelector('.resource-notification-action');
+  const muteButton = notification.querySelector('.resource-notification-mute');
+  const dismissButton = notification.querySelector('.resource-notification-close');
+  const resumeButton = notification.querySelector('.resource-notification-resume');
+  let nextNotificationIndex = 0;
+  let dismissTimer;
+  let cycleTimer;
+
+  const dismissNotification = () => {
+    if (notification.hidden || !notification.classList.contains('is-visible')) return;
+    notification.classList.remove('is-visible');
+    notification.setAttribute('aria-hidden', 'true');
+    window.clearTimeout(dismissTimer);
+    window.setTimeout(() => {
+      if (!notification.classList.contains('is-visible')) notification.hidden = true;
+    }, 550);
+  };
+
+  const saveMutePreference = (muted) => {
+    try {
+      localStorage.setItem('ecosynic-resource-notifications-muted', String(muted));
+    } catch {
+      // The current page still applies the preference when storage is unavailable.
+    }
+  };
+
+  const muteNotifications = () => {
+    resourceNotificationsMuted = true;
+    saveMutePreference(true);
+    window.clearTimeout(dismissTimer);
+    window.clearTimeout(cycleTimer);
+    content.hidden = true;
+    mutedState.hidden = false;
+    notification.classList.add('is-muted', 'is-visible');
+    notification.setAttribute('aria-label', 'Discovery notifications muted');
+    notification.setAttribute('aria-hidden', 'false');
+    notification.hidden = false;
+    resumeButton.focus();
+  };
+
+  const showNextNotification = () => {
+    if (resourceNotificationsMuted) return;
+    const item = resourceNotifications[nextNotificationIndex];
+    nextNotificationIndex = (nextNotificationIndex + 1) % resourceNotifications.length;
+    topic.textContent = `ECOSYNIC · ${item.topic}`;
+    title.textContent = item.title;
+    message.textContent = item.message;
+    action.href = item.href;
+    action.querySelector('span').textContent = item.link;
+    notification.hidden = false;
+    notification.setAttribute('aria-hidden', 'false');
+    window.requestAnimationFrame(() => {
+      notification.classList.add('is-visible');
+    });
+    dismissTimer = window.setTimeout(dismissNotification, 6000);
+    cycleTimer = window.setTimeout(showNextNotification, 10000);
+  };
+
+  muteButton.addEventListener('click', muteNotifications);
+  dismissButton.addEventListener('click', dismissNotification);
+  resumeButton.addEventListener('click', () => {
+    resourceNotificationsMuted = false;
+    saveMutePreference(false);
+    content.hidden = false;
+    mutedState.hidden = true;
+    notification.classList.remove('is-muted');
+    notification.setAttribute('aria-label', 'More from Ecosynic');
+    showNextNotification();
+    muteButton.focus();
+  });
+
+  if (resourceNotificationsMuted) {
+    content.hidden = true;
+    mutedState.hidden = false;
+    notification.classList.add('is-muted');
+    notification.setAttribute('aria-label', 'Discovery notifications muted');
+    notification.hidden = false;
+    notification.setAttribute('aria-hidden', 'false');
+    window.requestAnimationFrame(() => notification.classList.add('is-visible'));
+  } else {
+    cycleTimer = window.setTimeout(showNextNotification, 10000);
+  }
+}
+
 const siteHeader = document.querySelector('.site-header');
 const themeToggle = document.createElement('button');
 themeToggle.className = 'theme-toggle';
