@@ -196,6 +196,58 @@ if (primaryNav) {
   }
 }
 
+if (primaryNav) {
+  const socialWidget = document.createElement('div');
+  socialWidget.className = 'floating-social';
+  socialWidget.innerHTML = `
+    <div class="floating-social-panel" id="floating-social-panel" role="group" aria-label="Ecosynic social media" aria-hidden="true" hidden>
+      <p class="floating-social-heading">Find Ecosynic online</p>
+      <a class="floating-social-link" href="https://www.facebook.com/profile.php?id=61595448954346" target="_blank" rel="noopener noreferrer" aria-label="Visit Ecosynic Africa on Facebook">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.03 1.79-4.71 4.54-4.71 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.07 24 18.09 24 12.07z"/></svg>
+        <span>Facebook</span><span class="floating-social-status" aria-hidden="true">↗</span>
+      </a>
+      <button class="floating-social-link is-unavailable" type="button" disabled title="Profile link coming soon" aria-label="Instagram profile link coming soon">
+        <svg class="social-icon-outline" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r="1" class="social-icon-fill"/></svg>
+        <span>Instagram</span><span class="floating-social-status">Coming soon</span>
+      </button>
+      <a class="floating-social-link" href="https://wa.me/254702468206" target="_blank" rel="noopener noreferrer" aria-label="Chat with Ecosynic Africa on WhatsApp">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.52 3.48A11.82 11.82 0 0 0 1.86 17.76L.3 23.5l5.88-1.54A11.82 11.82 0 0 0 20.52 3.48ZM12 21.3a9.3 9.3 0 0 1-4.74-1.3l-.34-.2-3.49.91.93-3.4-.22-.35A9.3 9.3 0 1 1 12 21.3Z"/><path d="M17.2 14.1c-.28-.14-1.65-.82-1.91-.91-.26-.1-.44-.14-.63.14-.18.28-.72.91-.88 1.1-.16.18-.32.21-.6.07a7.62 7.62 0 0 1-2.25-1.39 8.44 8.44 0 0 1-1.56-1.94c-.16-.28-.02-.43.12-.57.13-.12.28-.32.42-.49.14-.16.18-.28.28-.46.1-.18.05-.35-.02-.49-.07-.14-.63-1.52-.86-2.08-.23-.55-.46-.48-.63-.49h-.53c-.18 0-.49.07-.74.35-.26.28-.98.96-.98 2.34s1 2.71 1.14 2.89c.14.18 1.97 3.01 4.77 4.22.67.29 1.19.46 1.6.59.67.21 1.28.18 1.76.11.54-.08 1.65-.67 1.88-1.32.23-.65.23-1.2.16-1.32-.07-.12-.25-.19-.53-.33Z"/></svg>
+        <span>WhatsApp</span><span class="floating-social-status" aria-hidden="true">↗</span>
+      </a>
+      <button class="floating-social-link is-unavailable" type="button" disabled title="Profile link coming soon" aria-label="X profile link coming soon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.78 7.75L23.2 22h-6.25l-4.9-7.45L5.53 22H2.4l7.25-8.29L1.8 2h6.4l4.43 6.77L18.9 2Zm-1.1 18h1.73L7.28 3.89H5.42L17.8 20Z"/></svg>
+        <span>X</span><span class="floating-social-status">Coming soon</span>
+      </button>
+    </div>
+    <button class="floating-social-toggle" type="button" aria-expanded="false" aria-controls="floating-social-panel" aria-label="Open social media links">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4m-6.6 7 6.6 4.3"/></svg>
+    </button>
+  `;
+  document.body.append(socialWidget);
+
+  const socialToggle = socialWidget.querySelector('.floating-social-toggle');
+  const socialPanel = socialWidget.querySelector('.floating-social-panel');
+  let socialPanelTimer;
+
+  socialToggle.addEventListener('click', () => {
+    const opening = socialToggle.getAttribute('aria-expanded') !== 'true';
+    window.clearTimeout(socialPanelTimer);
+    socialToggle.setAttribute('aria-expanded', String(opening));
+    socialToggle.setAttribute('aria-label', opening ? 'Close social media links' : 'Open social media links');
+    socialPanel.setAttribute('aria-hidden', String(!opening));
+
+    if (opening) {
+      socialPanel.hidden = false;
+      window.requestAnimationFrame(() => socialPanel.classList.add('is-open'));
+    } else {
+      socialPanel.classList.remove('is-open');
+      socialPanelTimer = window.setTimeout(() => {
+        if (socialToggle.getAttribute('aria-expanded') !== 'true') socialPanel.hidden = true;
+      }, 250);
+    }
+  });
+}
+
 const siteHeader = document.querySelector('.site-header');
 const themeToggle = document.createElement('button');
 themeToggle.className = 'theme-toggle';
